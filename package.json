@@ -1,0 +1,29 @@
+{
+  "name": "kloenen",
+  "description": "a super tiny and simple pubsub",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "files": [
+    "dist",
+    "index.d.ts"
+  ],
+  "module": "./lib/main.js",
+  "exports": {
+    "types": "./index.d.ts",
+    "import": "./lib/main.js"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
+  },
+  "dependencies": {
+    "kloenen": "link:",
+    "vitest": "^1.6.0"
+  }
+}
