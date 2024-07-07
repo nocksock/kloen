@@ -1,8 +1,13 @@
-# kloenen
+# Klönen [ˈkløːnən]
+
+> klönen | ˈkløːnən |
+>   intransitive verb
+>   (North German) to engage in leisurely, informal conversation or chat.
+
 
 A super tiny pubsub for js/ts in under 500 bytes. 
 
-At its current stage just 239 bytes, but likely to increase a bit.
+At its current stage it's even smaller, but as it's not yet 1.0, it's likely to increase a bit.
 
 ## Example
 
@@ -12,7 +17,7 @@ At its current stage just 239 bytes, but likely to increase a bit.
 import { create } from  "kloenen"
 
 // create a message bus
-const { fire, sub } = create()
+const [sub, fire] = create()
 
 // subscribe to a scope/channel/topic/whatever you call it
 const unsub = sub('message-scope', payload => console.log("received", payload))
@@ -29,33 +34,17 @@ unsub()
 
 ```ts
 import { create } from  "kloenen"
-const { fire, sub } = create()
 
-class TaskList extends HTMLElement {
-    static UpdateMessage = Symbol()
-    static fireUpdate = tasks => fire(Tasks.UpdateMessage, tasks)
+const [sub, fire] = create()
 
-    constructor() {
-        super()
-        sub(Tasks.UpdateMessage)
-    }
+const TaskUpdate = Symbol()
+const fireUpdate = tasks => fire(TaskUpdate, tasks)
 
-    render() {
-        this.innerHTML = `
-            <ul>
-            ${this.#received
-                .map(msg => `<li>${JSON.stringify(msg)}</li>`)
-                .join('')}
-            </ul>
-        `
-    }
-}
-
-sub(Tasks.Update, tasks => console.log("updated tasks", tasks))
+sub(TaskUpdate, tasks => console.log("updated tasks", tasks))
 
 fetch('https://jsonplaceholder.typicode.com/todos/')
     .then(r => r.json())
-    .then(TaskList.fireUpdate)
+    .then(fireUpdate)
 
 ```
 
@@ -63,31 +52,41 @@ fetch('https://jsonplaceholder.typicode.com/todos/')
 
 ```tsx
 import { create } from  "kloenen"
-const toJson = r => r.json()
+const [sub, fire] = create()
 
-class Tasks {
-    #tasks = [];
-    #endpoint;
+class AutoUpdatingJson {
+    #value
+    #endpoint
+    #interval
+    static toJson = r => r.json()
 
-    constructor(endpoint) {
+    constructor(endpoint, default) {
+        this.#value = value
         this.fetch();
-        setInterval(this.fetch.bind(this), 5000)
     }
 
-    fetch() {
-        fetch(this.#endpoint)
-            .then(toJson)
-            .then(this.set.bind(this))
+    async fetch() {
+        this.set(await fetch(this.#endpoint).then(AutoUpdatingJson.toJson))
+    }
+
+    start() {
+        this.#interval = setInterval(this.fetch.bind(this), 5000)
+        return this;
+    }
+
+    stop() {
+        clearInterval(this.#interval);
+        return this;
     }
 
     set(json) {
-        this.#tasks = json;
+        this.#value = json;
         fire(this, this.#tasks)
     }
 }
 
-const taskList = new Tasks('https://jsonplaceholder.typicode.com/todos/');
+const tasks = new AutoUpdatingJson('https://jsonplaceholder.typicode.com/todos/');
 
 // consume it in components etc.
-sub(taskList, console.log)
+sub(tasks, console.log)
 ```
