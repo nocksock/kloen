@@ -2,23 +2,22 @@
   "name": "kloenen",
   "description": "a super tiny and simple pubsub",
   "homepage": "https://git.sr.ht/~snock/kloenen",
-  "version": "0.3.0",
+  "version": "0.4.3",
   "type": "module",
   "files": [
-    "dist",
-    "index.d.ts"
+    "lib/main.js"
   ],
   "module": "./lib/main.js",
   "exports": {
-    "types": "./index.d.ts",
-    "import": "./lib/main.js",
-    "release:minor": "pnpm version minor && pnpm publish --go-git-checks",
-    "release:patch": "pnpm version patch && pnpm publish --go-git-checks"
+    "import": "./lib/main.js"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vitest"
+    "test": "vitest",
+    "release:minor": "pnpm version minor && pnpm publish --no-git-checks",
+    "release:patch": "pnpm version patch && pnpm publish --no-git-checks",
+    "gzip:watch": "fd | entr zsh -c 'cat lib/main.js| gzip -9 > main.js.gz  && ll main.js.gz && ll lib/'"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

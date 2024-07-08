@@ -14,79 +14,59 @@ At its current stage it's even smaller, but as it's not yet 1.0, it's likely to 
 ### Basic Usage
 
 ```ts
-import { create } from  "kloenen"
+import { on, emit } from  "kloenen"
 
-// create a message bus
-const [sub, fire] = create()
+// subscribe to a message
+const unsub = on('scope', data => console.log(data))
 
-// subscribe to a scope/channel/topic/whatever you call it
-const unsub = sub('message-scope', payload => console.log("received", payload))
-
-// fire a message
-fire('message-scope', "some payload")
+// emit a message
+emit('scope', "some payload") 
 
 // remove the listener from the hub
 unsub() 
 ```
 
 
-### Topics needn't be strings.
+### Scopes needn't be strings.
 
 ```ts
-import { create } from  "kloenen"
-
-const [sub, fire] = create()
+import { on, emit } from  "kloenen"
 
 const TaskUpdate = Symbol()
-const fireUpdate = tasks => fire(TaskUpdate, tasks)
 
-sub(TaskUpdate, tasks => console.log("updated tasks", tasks))
+on(TaskUpdate, tasks => console.log("updated tasks", tasks))
+on(TaskUpdate, tasks => console.log("updated tasks", tasks))
 
 fetch('https://jsonplaceholder.typicode.com/todos/')
     .then(r => r.json())
-    .then(fireUpdate)
+    .then(tasks => emit(TaskUpdate, tasks))
 
 ```
 
-### Or wrap it around resources
+### A shorter way to express the same as above
 
-```tsx
-import { create } from  "kloenen"
-const [sub, fire] = create()
+```ts
+import {value} from "kloen"
 
-class AutoUpdatingJson {
-    #value
-    #endpoint
-    #interval
-    static toJson = r => r.json()
+/**
+ * `value()` is a shorthand for
+ *
+ *    const scope     = Symbol()
+ *        , onTasks   = cb => on(scope, cb)
+ *        , setTasks  = value => emit(scope, value)
+ * 
+ * When given a default value, all handlers are immediately called. When omitted
+ * they're only invoked when `setTasks` is called.
+ */
+const [onTasks, setTasks] = value([])
 
-    constructor(endpoint, default) {
-        this.#value = value
-        this.fetch();
-    }
+fetch('https://jsonplaceholder.typicode.com/todos/')
+    .then(r => r.json())
+    .then(setTasks)
 
-    async fetch() {
-        this.set(await fetch(this.#endpoint).then(AutoUpdatingJson.toJson))
-    }
-
-    start() {
-        this.#interval = setInterval(this.fetch.bind(this), 5000)
-        return this;
-    }
-
-    stop() {
-        clearInterval(this.#interval);
-        return this;
-    }
-
-    set(json) {
-        this.#value = json;
-        fire(this, this.#tasks)
-    }
-}
-
-const tasks = new AutoUpdatingJson('https://jsonplaceholder.typicode.com/todos/');
-
-// consume it in components etc.
-sub(tasks, console.log)
+onTasks(console.log)
 ```
+
+### A more realistic example
+
+View a [more realistic usage example on codepen](https://codepen.io/nocksock/pen/oNrNYLK)
