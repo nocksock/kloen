@@ -1,5 +1,5 @@
-import { suite, test, expect, vi, afterEach } from 'vitest'
-import { on, emit, clear, value } from '../lib/main'
+import { suite, test, expect, vi, afterEach, expectTypeOf } from 'vitest'
+import { on, emit, clear, value, create } from '../lib/kloenen'
 
 suite('kloenen', _ => {
   afterEach(clear)
@@ -69,5 +69,46 @@ suite('kloenen', _ => {
       setValue(2)
       expect(handler).not.toHaveBeenCalledWith(2)
     })
+  })
+
+  suite('create', _ => {
+    test('types', _ => {
+      const symb = Symbol('foo')
+      const fn = (foo: string) => {}
+      const [on, emit] = create<{
+        foo: 'bar' | 'baz'
+        bar: 'somefoo'
+        trigger: undefined
+        [symb]: Record<any, any>
+        // TODO: find a way to allow this
+        // [fn]: Parameters<typeof fn>
+      }>()
+
+      // @ts-expect-error 'nope' is not a defined scope
+      emit('nope', 'bar')
+
+      on('foo', message => {
+        expectTypeOf(message).toEqualTypeOf<'bar' | 'baz'>()
+      })
+
+      on('trigger', message => {
+        expectTypeOf(message).toEqualTypeOf<undefined>()
+      })
+
+      emit('trigger')
+
+      on('bar', message => {
+        expectTypeOf(message).toEqualTypeOf<'somefoo'>()
+      })
+    })
+
+    // TODO: implement this
+    // test.('can take map', _ => {
+    //   const map = new Map<object, number>()
+    //   const [on, emit] = create(map)
+    //   on('foo', message => {
+    //     expectTypeOf(message).toEqualTypeOf<'bar' | 'baz'>()
+    //   })
+    // })
   })
 })

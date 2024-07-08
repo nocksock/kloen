@@ -1,19 +1,17 @@
 {
   "name": "kloenen",
-  "description": "a super tiny and simple pubsub",
+  "description": "super tiny pubsub",
   "homepage": "https://git.sr.ht/~snock/kloenen",
   "version": "0.4.3",
   "type": "module",
-  "files": [
-    "lib/main.js"
-  ],
-  "module": "./lib/main.js",
-  "exports": {
-    "import": "./lib/main.js"
-  },
+  "files": [ "lib" ],
+  "module": "./lib/kloenen.js",
+  "types": "./lib/kloenen.d.ts",
+  "main": "./lib/kloenen.js",
+  "packageManager": "pnpm",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "test": "vitest",
     "release:minor": "pnpm version minor && pnpm publish --no-git-checks",
     "release:patch": "pnpm version patch && pnpm publish --no-git-checks",
