@@ -1,64 +1,18 @@
-# Klönen [ˈkløːnən]
+# Kloen
 
-> klönen | ˈkløːnən |
->   intransitive verb
->   (North German) to engage in leisurely, informal conversation or chat.
+> Klön, der | kløːn |
+>   (North German) leisurely, informal conversation or chat.
 
+A tiny package for event messaging and state with signals in under 250 bytes[^1].
 
-A super tiny pubsub for js/ts in under 500 bytes. 
-
-At its current stage it's even smaller, but as it's not yet 1.0, it's likely to increase a bit.
-
-## Example
+## Examples
 
 ### Basic Usage
 
 ```ts
-import { on, emit } from  "kloenen"
-
-// subscribe to a message
-const unsub = on('scope', data => console.log(data))
-
-// emit a message
-emit('scope', "some payload") 
-
-// remove the listener from the hub
-unsub() 
-```
-
-
-### Scopes needn't be strings.
-
-```ts
-import { on, emit } from  "kloenen"
-
-const TaskUpdate = Symbol()
-
-on(TaskUpdate, tasks => console.log("updated tasks", tasks))
-on(TaskUpdate, tasks => console.log("updated tasks", tasks))
-
-fetch('https://jsonplaceholder.typicode.com/todos/')
-    .then(r => r.json())
-    .then(tasks => emit(TaskUpdate, tasks))
-
-```
-
-### A shorter way to express the same as above
-
-```ts
 import {value} from "kloen"
 
-/**
- * `value()` is a shorthand for
- *
- *    const scope     = Symbol()
- *        , onTasks   = cb => on(scope, cb)
- *        , setTasks  = value => emit(scope, value)
- * 
- * When given a default value, all handlers are immediately called. When omitted
- * they're only invoked when `setTasks` is called.
- */
-const [onTasks, setTasks] = value([])
+const [onTasks, setTasks] = value()
 
 fetch('https://jsonplaceholder.typicode.com/todos/')
     .then(r => r.json())
@@ -67,6 +21,166 @@ fetch('https://jsonplaceholder.typicode.com/todos/')
 onTasks(console.log)
 ```
 
-### A more realistic example
+### Use it as a reducer
+
+```ts
+import { value } from "kloen"
+
+const [onUpdate, dispatch] = value({tasks: []}, (action, state) => {
+    switch (action.type) {
+        case 'addTask': 
+            return { users: [...state.users, action.data] }
+        default: 
+            return state
+    }
+})
+
+// In some component.
+// note: the subscribe function returns a method to unsubscribe the handler.
+const unsub = onUpdate(state => console.log("current tasks:", state.tasks))
+
+// somewhere, usually a button's click-handler:
+dispatch({ type: 'addTask', data: { title: 'Touch grass', completed: false }})
+```
+
+### handlers will be called immediately, if a default value is set
+
+To make setups easier, whenever you pass a default value to `value()`, every
+handler is called once *immediately*.
+
+```ts
+import { value } from "kloen"
+
+const [onTasks, setTasks] = value([])
+
+class TaskList extends HTMLElement {
+    constructor() {
+        const fetchTasks = _ => fetch('https://jsonplaceholder.typicode.com/todos/')
+            .then(r => r.json())
+            .then(setTasks)
+
+        onTasks(this.render)
+    }
+    render(tasks) {
+        this.innerHTML = `
+            <ul>
+                ${tasks.map(task => `<li>${task.title}</li>`)}
+            </ul>
+        `
+    }
+}
+```
+
+### Event Hub
+
+Subscribe to scopes, and emit messages to all listeners. This is what `value()` 
+uses under the hood, with the handler and emitter bound to a unique scope.
+
+```ts
+import { on, emit } from  "kloen"
+
+// subscribe to a message
+const unsub = on('scope', data => console.log(data))
+
+// emit a message
+emit('scope', "some message") 
+
+// remove the listener from the hub
+unsub() 
+```
+
+### Ping! The payload is optional.
+
+```ts
+import { on, emit } from "kloen"
+
+const ping = Symbol()
+
+on(ping, _ => console.log("got pinged"))
+
+emit(ping)
+```
+
+### Scopes can be (almost) anything!
+
+Anything that is a valid key for a `Map` can be used as a scope. So not just 
+strings, but also functions, objects, classes, numbers and so on.
+
+This makes some unusual, but interesting patterns possible. eg.: subscribe to
+whenever an async function is resolved:
+
+```ts
+import { on, emit } from  "kloen"
+
+const fetchTasks = _ => fetch('https://jsonplaceholder.typicode.com/todos/')
+    .then(r => r.json())
+    .then(tasks => emit(fetchTasks, tasks))
+    .then(console.log) // emit returns the data it was passed for chaining
+
+on(fetchTasks, tasks => console.log("updated tasks", tasks))
+```
+
+### Create a new message-hub + TypeScript
+
+You can use `create` to create a new message-hub instead of the global one. It 
+returns a tuple with the subscriber, emitter and a method to remove all subscribers.
+the exported `on`, `emit` and `clear` were created the exact same way.
+
+Use it also to define the types.
+
+```ts
+import { create } from  "kloen"
+
+const ping = Symbol();
+
+const [on, emit, clear] = create<{
+    setName: string,
+    [ping]: undefined,
+    onlyFoo: 'foo'
+}>(); 
+
+// ok:
+on('setName', name => {
+    //        ^? string
+})
+
+// ok:
+on('onlyFoo', foo => {
+    //        ^? 'foo'
+})
+
+// TypeScript Error:
+on('unknownScope', () => /* ... */);
+
+
+emit(ping) // => ok!
+emit('setName', 'Ada') // => ok!
+emit('onlyFoo', 'bar') // => TypeScript error!
+
+```
+
+### More Complex Example
 
 View a [more realistic usage example on codepen](https://codepen.io/nocksock/pen/oNrNYLK)
+
+## API
+
+- TBD
+
+## Caveats
+
+- ESM only
+- API likely to change until 1.0
+- Not yet fully typed 
+
+## Roadmap to v1
+
+- [ ] fully typed
+- [ ] derive helper fn
+- [ ] create benchmarks
+- [ ] create basic extensions
+
+---
+
+[^1]: 249 bytes with `gzip -9`, 360 bytes raw. Size likely to change until 1.0. 
+

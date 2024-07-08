@@ -1,7 +1,7 @@
 import { suite, test, expect, vi, afterEach, expectTypeOf } from 'vitest'
-import { on, emit, clear, value, create } from '../lib/kloenen'
+import { on, emit, clear, value, create } from '../lib/kloen.js'
 
-suite('kloenen', _ => {
+suite('kloen', _ => {
   afterEach(clear)
   test('basic usage', _ => {
     const cb = vi.fn()
@@ -100,6 +100,44 @@ suite('kloenen', _ => {
       on('bar', message => {
         expectTypeOf(message).toEqualTypeOf<'somefoo'>()
       })
+    })
+
+    test('can take a setter', _ => {
+      const cb = vi.fn((payload, oldValue) => oldValue + (payload || 1))
+      const [onValue, increment] = value(0, cb)
+      increment()
+      expect(cb).toHaveBeenCalledWith(undefined, 0)
+      increment(1)
+      expect(cb).toHaveBeenCalledWith(1, 1)
+      increment('foo')
+      expect(cb).toHaveBeenCalledWith('foo', 2)
+    })
+
+    test('setter can be used as a reducer', _ => {
+      const reducer = vi.fn((action, state) => {
+        switch (action.type) {
+          case 'addUser': {
+            return { users: [...state.users, action.data] }
+          }
+          default: {
+            return state
+          }
+        }
+      })
+      const [onUpdate, dispatch, ref] = value({ users: [] }, reducer)
+
+      expect(ref.value).toEqual({ users: [] })
+      dispatch({ type: 'addUser', data: 'foo' })
+
+      onUpdate(newValue => {
+        expect(reducer).toHaveBeenCalledWith(
+          { type: 'addUser', data: 'foo' },
+          { users: [] }
+        )
+        expect(newValue).toEqual({ users: ['foo'] })
+      })
+
+      expect(ref.value).toEqual({ users: ['foo'] })
     })
 
     // TODO: implement this
