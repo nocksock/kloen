@@ -5,9 +5,22 @@
 
 A tiny package for event messaging and state with signals in under 250 bytes[^1].
 
+
+🚧 Work in progress 🚧
+
+Docs are unfinished, and kloen has not yet reached 1.0 - meaning its API is open 
+to change.
+
 ## Examples
 
 ### Basic Usage
+
+`value()` will return a tuple consisting of:
+
+- `observe(callback)`: will call the `callback`, when set was called. Returns an `unsubscribe` function.
+- `set(value)`: set the value, and call all listeners (no change detection). Returns the value.
+- `derive(callback)`: returns an observable that contains the result of the callback
+- `ref`: an object `{value: <the value> }` that is stable for referential equality checks.
 
 ```ts
 import {value} from "kloen"
@@ -171,6 +184,7 @@ View a [more realistic usage example on codepen](https://codepen.io/nocksock/pen
 
 - ESM only
 - API might change slightly until 1.0
+- At the momen there is no check, whether a value changed. Listeners will be called at every `set` call.
 - Types are not yet fully done
 
 ## Roadmap to v1
