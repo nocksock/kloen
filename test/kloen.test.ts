@@ -36,10 +36,8 @@ suite('kloen', _ => {
 
   test('so does setValue', _ => {
     const cb = vi.fn()
-    const [onValue, setValue] = value(0)
-    Promise.resolve(setValue('hello'))
-      .then(cb)
-      .then(_ => expect(cb).toHaveBeenCalledWith('hello'))
+    const [onValue, setValue] = value<0 | 'hello'>(0)
+    expect(setValue('hello')).toEqual('hello')
   })
 
   suite('value', _ => {

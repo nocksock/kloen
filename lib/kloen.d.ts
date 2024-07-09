@@ -59,7 +59,7 @@ export const emit: (scope: ValidScope, value?: unknown) => void
  * Remove all global listeners
  */
 export const clear: () => void
-
+type TransformerFn<Value> = (value: Value, oldValue: Value) => Value
 /**
  * Create an observable value aka signal
  * When given a defaultValue, observers are called immediately.
@@ -74,13 +74,17 @@ export const clear: () => void
  */
 export const value: <
   Value,
-  Transformer extends (value: Value, oldValue: Value) => Value,
+  Transformer extends TransformerFn<Value> = TransformerFn<Value>,
 >(
   initialValue?: Value,
   transformer?: Transformer
 ) => [
-  (handler: Transformer extends Function ? Transformer : Handler<Value>) => Unsubscribe,
-  (value: Value) => void,
-  <R>(deriveCb: (value: Value) => R) => (handler: Handler<R>) => Unsubscribe,
-  { value: Value },
+  observe: (
+    handler: Transformer extends Function ? Transformer : Handler<Value>
+  ) => Unsubscribe,
+  set: (value: Value) => void,
+  derive: <R>(
+    deriveCb: (value: Value) => R
+  ) => (handler: Handler<R>) => Unsubscribe,
+  ref: { value: Value },
 ]
