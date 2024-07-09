@@ -3,7 +3,7 @@
 > Klön, der | kløːn |
 >   (North German) leisurely, informal conversation or chat.
 
-A tiny package for event messaging and state with signals in under 250 bytes[^1].
+A tiny package for event messaging and state with signals in under 300 bytes[^1].
 
 
 🚧 Work in progress 🚧
@@ -196,5 +196,5 @@ View a [more realistic usage example on codepen](https://codepen.io/nocksock/pen
 
 ---
 
-[^1]: 249 bytes with `gzip -9`, 360 bytes raw. Size likely to change until 1.0. 
+[^1]: 263 bytes with `gzip -9`, 360 bytes raw. Size likely to change until 1.0. 
 
