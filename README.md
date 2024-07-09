@@ -170,8 +170,8 @@ View a [more realistic usage example on codepen](https://codepen.io/nocksock/pen
 ## Caveats
 
 - ESM only
-- API likely to change until 1.0
-- Not yet fully typed 
+- API might change slightly until 1.0
+- Types are not yet fully done
 
 ## Roadmap to v1
 

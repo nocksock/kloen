@@ -61,16 +61,26 @@ export const emit: (scope: ValidScope, value?: unknown) => void
 export const clear: () => void
 
 /**
- * Create a subscribable value.
+ * Create an observable value aka signal
+ * When given a defaultValue, observers are called immediately.
  *
- * Shorthand for:
+ *    const [observe, setValue, derive] = value(defaultValue)
  *
- *    const scope     = Symbol()
- *        , onTasks   = cb => on(scope, cb)
- *        , setTasks  = value => emit(scope, value)
+ * Its fourth return value is an object that holds the current value. The object
+ * is stable and will pass referential equality checks.
  *
- *    since it's creating a unique symbol, this uses the global hub.
+ *    const [observe, setValue, derive, ref] = value(0)
+ *    console.log(ref) // => {value: 0}
  */
-export const value: <Value>(
-  initialValue?: Value
-) => [(handler: Handler<Value>) => Unsubscribe, (value: Value) => void]
+export const value: <
+  Value,
+  Transformer extends (value: Value, oldValue: Value) => Value,
+>(
+  initialValue?: Value,
+  transformer?: Transformer
+) => [
+  (handler: Transformer extends Function ? Transformer : Handler<Value>) => Unsubscribe,
+  (value: Value) => void,
+  <R>(deriveCb: (value: Value) => R) => (handler: Handler<R>) => Unsubscribe,
+  { value: Value },
+]

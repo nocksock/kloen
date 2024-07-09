@@ -1,5 +1,5 @@
-import { suite, test, expect, vi, afterEach, expectTypeOf } from 'vitest'
-import { on, emit, clear, value, create } from '../lib/kloen.js'
+import { suite, test, it, expect, vi, afterEach, expectTypeOf } from 'vitest'
+import { on, emit, clear, value, create, derive } from '../lib/kloen.js'
 
 suite('kloen', _ => {
   afterEach(clear)
@@ -43,31 +43,74 @@ suite('kloen', _ => {
   })
 
   suite('value', _ => {
-    test('wrap values in a scope', _ => {
-      // value
-      const [onValue, setValue] = value(0)
-      const handler = vi.fn()
-      const unsub = onValue(handler)
-      // calls all new handler with the initial value, if present
-      expect(handler).toHaveBeenCalledWith(0)
-      setValue(1)
-      expect(handler).toHaveBeenCalledWith(1)
-      unsub()
-      setValue(2)
-      expect(handler).not.toHaveBeenCalledWith(2)
+    it('calls handlers immediately when given default Value', _ => {
+      const [onValue] = value('foo'),
+        handler = vi.fn()
+      onValue(handler)
+      expect(handler).toHaveBeenCalledWith('foo')
     })
-    test('no handler call if no initial value given', _ => {
-      // value
-      const [onValue, setValue] = value()
+    it('does not call handler immediately without default value', _ => {
+      const [onValue, setValue, _derive, ref] = value()
       const handler = vi.fn()
       const unsub = onValue(handler)
-      // calls all new handler with the initial value, if present
       expect(handler).not.toHaveBeenCalled()
       setValue(1)
       expect(handler).toHaveBeenCalledWith(1)
       unsub()
       setValue(2)
       expect(handler).not.toHaveBeenCalledWith(2)
+    })
+
+    it('returns a derive method', () => {
+      const cb = vi.fn()
+      const cb2 = vi.fn()
+      const [onTasks, setTasks, derive, ref] = value([1, 2, 3])
+      onTasks(cb2)
+      expect(cb2).toHaveBeenCalledWith([1, 2, 3])
+      expect(ref.value).toEqual([1, 2, 3])
+      const onLength = derive(tasks => {
+        expectTypeOf(tasks).toEqualTypeOf<number[]>()
+        return tasks.length
+      })
+      onLength(cb)
+      expect(cb).toHaveBeenCalledWith(3)
+      setTasks([1, 2, 3, 4])
+      expect(cb).toHaveBeenCalledWith(4)
+      expect(ref.value).toEqual([1, 2, 3, 4])
+    })
+
+    it('can take a transformer', _ => {
+      const cb = vi.fn((payload, oldValue) => oldValue + (payload || 1))
+      const [onValue, increment] = value(0, cb)
+      increment(1)
+      expect(cb).toHaveBeenCalledWith(1, 0)
+      // @ts-expect-error
+      increment('foo')
+      expect(cb).toHaveBeenCalledWith('foo', 1)
+    })
+
+    it('can be used as a reducer', _ => {
+      const reducer = vi.fn((action: { type: string; data: string }, state) => {
+        switch (action.type) {
+          case 'addUser': {
+            return { users: [...state.users, action.data] }
+          }
+          default: {
+            return state
+          }
+        }
+      })
+      const [onUpdate, dispatch] = value({ users: [] }, reducer)
+
+      dispatch({ type: 'addUser', data: 'foo' })
+
+      onUpdate(newValue => {
+        expect(reducer).toHaveBeenCalledWith(
+          { type: 'addUser', data: 'foo' },
+          { users: [] }
+        )
+        expect(newValue).toEqual({ users: ['foo'] })
+      })
     })
   })
 
@@ -80,7 +123,7 @@ suite('kloen', _ => {
         bar: 'somefoo'
         trigger: undefined
         [symb]: Record<any, any>
-        // TODO: find a way to allow this
+        // TODO: find a way to allow this in ts
         // [fn]: Parameters<typeof fn>
       }>()
 
@@ -100,44 +143,6 @@ suite('kloen', _ => {
       on('bar', message => {
         expectTypeOf(message).toEqualTypeOf<'somefoo'>()
       })
-    })
-
-    test('can take a setter', _ => {
-      const cb = vi.fn((payload, oldValue) => oldValue + (payload || 1))
-      const [onValue, increment] = value(0, cb)
-      increment()
-      expect(cb).toHaveBeenCalledWith(undefined, 0)
-      increment(1)
-      expect(cb).toHaveBeenCalledWith(1, 1)
-      increment('foo')
-      expect(cb).toHaveBeenCalledWith('foo', 2)
-    })
-
-    test('setter can be used as a reducer', _ => {
-      const reducer = vi.fn((action, state) => {
-        switch (action.type) {
-          case 'addUser': {
-            return { users: [...state.users, action.data] }
-          }
-          default: {
-            return state
-          }
-        }
-      })
-      const [onUpdate, dispatch, ref] = value({ users: [] }, reducer)
-
-      expect(ref.value).toEqual({ users: [] })
-      dispatch({ type: 'addUser', data: 'foo' })
-
-      onUpdate(newValue => {
-        expect(reducer).toHaveBeenCalledWith(
-          { type: 'addUser', data: 'foo' },
-          { users: [] }
-        )
-        expect(newValue).toEqual({ users: ['foo'] })
-      })
-
-      expect(ref.value).toEqual({ users: ['foo'] })
     })
 
     // TODO: implement this
