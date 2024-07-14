@@ -196,5 +196,5 @@ View a [more realistic usage example on codepen](https://codepen.io/nocksock/pen
 
 ---
 
-[^1]: 263 bytes with `gzip -9`, 360 bytes raw. Size likely to change until 1.0. 
+[^1]: 257 bytes with `gzip -9`, 398 bytes raw. Size likely to change until 1.0. 
 

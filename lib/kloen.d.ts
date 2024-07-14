@@ -80,7 +80,7 @@ export const value: <
   transformer?: Transformer
 ) => [
   observe: (
-    handler: Transformer extends Function ? Transformer : Handler<Value>
+    handler: Handler<Value>
   ) => Unsubscribe,
   set: (value: Value) => void,
   derive: <R>(

@@ -1,5 +1,5 @@
 import { suite, test, it, expect, vi, afterEach, expectTypeOf } from 'vitest'
-import { on, emit, clear, value, create, derive } from '../lib/kloen.js'
+import { on, emit, clear, value, create } from '../lib/kloen.max'
 
 suite('kloen', _ => {
   afterEach(clear)
@@ -27,6 +27,31 @@ suite('kloen', _ => {
     expect(cb2).toHaveBeenCalledTimes(2)
   })
 
+  test('multiple signals', _ => {
+    const cb = vi.fn()
+    const [a$, setA] = value(1)
+    const [b$, setB] = value('hello')
+    on([a$, b$], cb)
+    expect(cb).toHaveBeenCalledWith([1, 'hello'])
+    setA(2)
+    expect(cb).toHaveBeenCalledWith([2, 'hello'])
+    setB('world')
+    expect(cb).toHaveBeenCalledWith([2, 'world'])
+  })
+
+  test('current values are available in callbacks', _ => {
+    const [a, setA, fromA] = value('hello')
+    const [b] = fromA(v => v + ' world')
+
+    const cb = vi.fn(v => {
+      expect(a.cur).toEqual('moin')
+      expect(b.cur).toEqual('moin world')
+    })
+
+    on(a, cb)
+    setA('moin')
+  })
+
   test('emit returns the value for chaining in promises', _ => {
     const cb = vi.fn()
     Promise.resolve(emit('topic', 'hello'))
@@ -47,8 +72,9 @@ suite('kloen', _ => {
       onValue(handler)
       expect(handler).toHaveBeenCalledWith('foo')
     })
+
     it('does not call handler immediately without default value', _ => {
-      const [onValue, setValue, _derive, ref] = value()
+      const [onValue, setValue, _derive] = value()
       const handler = vi.fn()
       const unsub = onValue(handler)
       expect(handler).not.toHaveBeenCalled()
@@ -59,22 +85,54 @@ suite('kloen', _ => {
       expect(handler).not.toHaveBeenCalledWith(2)
     })
 
-    it('returns a derive method', () => {
+    it('actually uses the observer as scope', () => {
+      const [onValue, setValue] = value(0)
       const cb = vi.fn()
-      const cb2 = vi.fn()
-      const [onTasks, setTasks, derive, ref] = value([1, 2, 3])
-      onTasks(cb2)
-      expect(cb2).toHaveBeenCalledWith([1, 2, 3])
-      expect(ref.value).toEqual([1, 2, 3])
-      const onLength = derive(tasks => {
+      on(onValue, cb)
+      setValue(1)
+      expect(cb).toHaveBeenCalledWith(1)
+    })
+
+    it('returns a derive method', () => {
+      value.debug = true
+      const handleTaskUpdate = vi.fn()
+      const [tasks$, setTasks, deriveTasks$] = value([1, 2, 3])
+      tasks$(handleTaskUpdate)
+      expect(handleTaskUpdate).toHaveBeenCalledWith([1, 2, 3])
+      expect(tasks$.cur).toEqual([1, 2, 3])
+
+      const [length$, fromOnLength] = deriveTasks$(tasks => {
         expectTypeOf(tasks).toEqualTypeOf<number[]>()
         return tasks.length
       })
-      onLength(cb)
-      expect(cb).toHaveBeenCalledWith(3)
+
+      const handleLengthUpdate = vi.fn()
+      length$(handleLengthUpdate) // wasn't called, means length doesn't call the fn
+      expect(handleLengthUpdate).toHaveBeenCalledWith(3)
+      
       setTasks([1, 2, 3, 4])
+
+      expect(handleLengthUpdate).toHaveBeenCalledWith(4)
+      expect(tasks$.cur).toEqual([1, 2, 3, 4])
+    })
+
+
+    it('should be possible to have derivatives of derivatives', () => {
+      const [value$, setValue, fromValue] = value(0)
+      const [double$, fromDouble] = fromValue(v => v * 2)
+      const [doubleDouble$] = fromDouble(v => v * 2)
+
+      const cb = vi.fn()
+      const cb2 = vi.fn()
+
+      double$(cb)
+      doubleDouble$(cb2)
+      expect(cb).toHaveBeenCalledWith(0)
+      expect(cb2).toHaveBeenCalledWith(0)
+
+      setValue(2)
       expect(cb).toHaveBeenCalledWith(4)
-      expect(ref.value).toEqual([1, 2, 3, 4])
+      expect(cb2).toHaveBeenCalledWith(8)
     })
 
     it('can take a transformer', _ => {
@@ -143,13 +201,6 @@ suite('kloen', _ => {
       })
     })
 
-    // TODO: implement this
-    // test.('can take map', _ => {
-    //   const map = new Map<object, number>()
-    //   const [on, emit] = create(map)
-    //   on('foo', message => {
-    //     expectTypeOf(message).toEqualTypeOf<'bar' | 'baz'>()
-    //   })
-    // })
+
   })
 })
