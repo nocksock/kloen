@@ -109,13 +109,12 @@ suite('kloen', _ => {
       const handleLengthUpdate = vi.fn()
       length$(handleLengthUpdate) // wasn't called, means length doesn't call the fn
       expect(handleLengthUpdate).toHaveBeenCalledWith(3)
-      
+
       setTasks([1, 2, 3, 4])
 
       expect(handleLengthUpdate).toHaveBeenCalledWith(4)
       expect(tasks$.cur).toEqual([1, 2, 3, 4])
     })
-
 
     it('should be possible to have derivatives of derivatives', () => {
       const [value$, setValue, fromValue] = value(0)
@@ -200,7 +199,19 @@ suite('kloen', _ => {
         expectTypeOf(message).toEqualTypeOf<'somefoo'>()
       })
     })
+  })
 
+  test('using derived signals', () => {
+    const appendWorld = vi.fn((v: string) => v + ' world')
+    const makeleet = vi.fn((v: string) =>
+      v.replace(/o/g, '0').replace(/e/g, '3').replace(/l/g, '1')
+    )
+    const [a$, setA, fromA] = value('hello')
+    const [aWorld$, fromAWorld] = fromA(appendWorld)
+    const [leetA$] = fromA(makeleet)
+    const [leetWorldA$] = fromAWorld(makeleet)
 
+    leetA$(v => expect(v).toEqual('h3110'))
+    leetWorldA$(v => expect(v).toEqual('h3110 w0r1d'))
   })
 })
