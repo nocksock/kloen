@@ -1,7 +1,6 @@
-// @ts-nocheck - WIP
 export const create = () => {
-  const M = new Map(),
-    on = (scope: any, fn) => {
+  const M = new Map()
+  const on = (scope: any, fn: any) => {
       if (Array.isArray(scope)) {
         const signals = scope
         const cb = () => {
