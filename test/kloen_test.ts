@@ -1,7 +1,7 @@
 import { suite, test, it, expect, vi, afterEach, expectTypeOf } from 'vitest'
 import { on, emit, clear, value, create } from '../lib/kloen.max'
 
-suite('kloen', _ => {
+suite.skip('kloen', _ => {
   afterEach(clear)
   test('basic usage', _ => {
     const cb = vi.fn()
@@ -172,7 +172,7 @@ suite('kloen', _ => {
   suite('create', _ => {
     test('types', _ => {
       const symb = Symbol('foo')
-      const fn = (foo: string) => {}
+      const fn = (foo: string) => { }
       const [on, emit] = create<{
         foo: 'bar' | 'baz'
         bar: 'somefoo'

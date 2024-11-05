@@ -7,9 +7,7 @@ export const create = () => {
           const values = signals.map(signal => signal.cur)
           fn(values)
         }
-        const unsubs = signals.map(signal =>
-          on(signal, cb)
-        )
+        const unsubs = signals.map(signal => on(signal, cb))
         cb()
         return () => unsubs.forEach(unsub => unsub())
       }
@@ -24,9 +22,7 @@ export const create = () => {
     ),
     value = (defaultValue?: any, transformer?: Transformer) =>
       ((
-        V$ = f => (
-          defaultValue !== void 0 && f(defaultValue), on(V$, f)
-        ),
+        V$ = f => (defaultValue !== void 0 && f(defaultValue), on(V$, f)),
         derive = (deriveFn, B$ = V$) => {
           const D$ = f => (f(D$.cur), on(D$, f))
           D$.cur = deriveFn(B$.cur)
@@ -48,5 +44,3 @@ export const create = () => {
       })()
   return [on, emit, value, M.clear.bind(M)]
 }
-
-export const [on, emit, value, clear] = create()

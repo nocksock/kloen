@@ -14,18 +14,20 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "test": "vitest",
+    "test": "vitest --environment jsdom",
     "release:minor": "pnpm version minor && pnpm publish --no-git-checks",
     "release:patch": "pnpm version patch && pnpm publish --no-git-checks",
     "gzip:watch": "fd | entr zsh -c pnpm run gzip:check",
     "gzip:check": "cat dist/kloen.js| gzip -9 > kloen.js.gz  && ls -la kloen.js.gz && ls -la lib/"
   },
   "devDependencies": {
+    "jsdom": "^25.0.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.10"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
     "terser": "^5.31.1",
-    "vitest": "^1.6.0"
+    "vitest": "^2.1.4"
   }
 }
