@@ -1,7 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.signal = exports.bind = exports.on = exports.derive = exports.Signal = void 0;
-exports.when = when;
 class Changes {
     #events = new Set();
     add(signal) {
@@ -14,7 +10,7 @@ class Changes {
     }
 }
 const CHANGES = new Changes();
-class Signal {
+export class Signal {
     #value;
     #listeners = new Set();
     constructor(initialValue) {
@@ -46,7 +42,7 @@ class Signal {
         return () => this.#listeners.delete(cb);
     }
     map(fn) {
-        return (0, exports.derive)(this, fn);
+        return derive(this, fn);
     }
     when(cb) {
         return this.onChange(value => {
@@ -198,9 +194,8 @@ class Signal {
         return this;
     }
 }
-exports.Signal = Signal;
 const signal_get = (s) => s.get();
-const derive = (signal, cb) => {
+export const derive = (signal, cb) => {
     if (!Array.isArray(signal)) {
         const initialValue = cb(signal.get());
         const derived = new Signal(initialValue);
@@ -213,36 +208,32 @@ const derive = (signal, cb) => {
     signal.forEach(signal => signal.onChange(() => derived.set(callback())));
     return derived;
 };
-exports.derive = derive;
 // @ts-ignore
 const invoke = f => f();
-const on = (signal, cb) => {
+export const on = (signal, cb) => {
     if (!Array.isArray(signal))
         return signal.onChange(cb);
     const callback = () => cb(...signal.map(signal_get));
     const unsubs = signal.map(signal => signal.onChange(callback));
     return () => unsubs.forEach(invoke);
 };
-exports.on = on;
-const bind = (signal, cb) => {
+export const bind = (signal, cb) => {
     if (!Array.isArray(signal)) {
         cb(signal.get());
-        (0, exports.on)(signal, cb);
+        on(signal, cb);
         return;
     }
     const callback = () => cb(...signal.map(signal_get));
     signal.forEach(signal => signal.onChange(callback));
     callback();
 };
-exports.bind = bind;
-function when(pairs, cb) {
+export function when(pairs, cb) {
     const signals = pairs.map(([signal]) => signal);
-    return (0, exports.on)(signals, (...values) => {
+    return on(signals, (...values) => {
         const allMatch = pairs.every(([signal, expectedValue], index) => values[index] === expectedValue);
         if (allMatch) {
             cb();
         }
     });
 }
-const signal = (initialValue) => new Signal(initialValue);
-exports.signal = signal;
+export const signal = (initialValue) => new Signal(initialValue);
