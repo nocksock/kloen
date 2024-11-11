@@ -39,12 +39,7 @@ export class Signal<T> {
     return this.#value;
   }
 
-  set(value: T) {
-    this.#value = value;
-    CHANGES.add(this);
-  }
-
-  update(fn: (value: T, ...args: any[]) => T, ...args: any[]): this {
+  update(fn: (value: T, ...args: any[]) => T, ...args: any[]) {
     this.#value = fn(this.#value, ...args);
     CHANGES.add(this);
   }
@@ -108,7 +103,7 @@ export class Signal<T> {
 
   debounce(ms: number): Signal<T> {
     const debounced = new Signal<T>(this.#value);
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     this.onChange(value => {
       clearTimeout(timeoutId);
@@ -212,7 +207,7 @@ export class Signal<T> {
   throttle(ms: number): Signal<T> {
     const throttled = new Signal<T>(this.#value);
     let lastRun = 0;
-    let timeout: NodeJS.Timeout | null = null;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
 
     const run = (value: T) => {
       lastRun = Date.now();

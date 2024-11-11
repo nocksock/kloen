@@ -1,7 +1,7 @@
 {
   "name": "leuchten",
   "description": "",
-  "version": "0.0.0",
+  "version": "0.0.1-canary.0",
   "type": "module",
   "files": [
     "lib"
@@ -14,8 +14,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest --environment jsdom",
-    "release:minor": "pnpm version minor && pnpm publish --no-git-checks",
-    "release:patch": "pnpm version patch && pnpm publish --no-git-checks",
+    "release:minor": "tsc && pnpm version minor && pnpm publish --no-git-checks",
+    "release:patch": "tsc && pnpm version patch && pnpm publish --no-git-checks",
+    "release:canary": "tsc && pnpm version prerelease --preid=canary && pnpm publish --tag canary",
     "gzip:watch": "fd | entr zsh -c pnpm run gzip:check",
     "gzip:check": "cat out/main.js| gzip -9 > out/main.js.gz  && ls -la out/"
   },

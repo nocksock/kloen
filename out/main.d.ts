@@ -6,7 +6,7 @@ export declare class Signal<T> {
     set value(value: T);
     get(): T;
     toString(): T;
-    update(fn: (value: T, ...args: any[]) => T, ...args: any[]): this;
+    update(fn: (value: T, ...args: any[]) => T, ...args: any[]): void;
     emit(): void;
     onChange(cb: Callback<T>): () => boolean;
     map<U>(fn: (value: T) => U): Signal<U>;
@@ -27,10 +27,11 @@ export declare class Signal<T> {
     }>;
     reduce<U>(reducer: (accumulator: U, current: T) => U, initialValue: U): Signal<U>;
     throttle(ms: number): Signal<T>;
+    set(value: T): this;
 }
 export declare const derive: <T, R>(signal: Signal<T>, cb: (value: T) => R) => Signal<any> | Signal<R>;
 export declare const on: <T>(signal: Signal<T> | Signal<T>[], cb: Callback<T>) => () => void;
-export declare const bind: <T>(signal: Signal<any>[] | Signal<T>, cb: Callback<T>) => void;
+export declare const bind: <T>(signal: Signal<T> | Signal<any>[], cb: Callback<T>) => void;
 export declare function when(pairs: [Signal<any>, any][], cb: () => void): () => void;
 export declare const signal: <V>(initialValue: V) => Signal<V>;
 export {};

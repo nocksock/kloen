@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signal = exports.when = exports.bind = exports.on = exports.derive = exports.Signal = void 0;
+exports.signal = exports.bind = exports.on = exports.derive = exports.Signal = void 0;
+exports.when = when;
 class Changes {
     #events = new Set();
     add(signal) {
@@ -31,10 +32,6 @@ class Signal {
     }
     toString() {
         return this.#value;
-    }
-    set(value) {
-        this.#value = value;
-        CHANGES.add(this);
     }
     update(fn, ...args) {
         this.#value = fn(this.#value, ...args);
@@ -247,6 +244,5 @@ function when(pairs, cb) {
         }
     });
 }
-exports.when = when;
 const signal = (initialValue) => new Signal(initialValue);
 exports.signal = signal;
