@@ -1,20 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { derive, emit, on, signal, bind } from "../main";
 
-describe("on/emit", () => {
-  it("is a basic pubsub bus", () => {
-    const cb = vi.fn();
-    const unsub = on("topic", cb);
-    emit("othertopic", "hello");
-    expect(cb).toHaveBeenCalledTimes(0);
-    emit("topic", "hello");
-    expect(cb).toHaveBeenCalledTimes(1);
-    unsub();
-    emit("topic", "hello");
-    expect(cb).toHaveBeenCalledTimes(1);
-  });
-});
-
 describe("Signal", () => {
   vi.useFakeTimers();
 
@@ -53,23 +39,31 @@ describe("Signal", () => {
     await vi.runAllTimersAsync();
     expect(b.get()).toEqual(16);
   });
-
 });
 
 describe('derive', () => {
-  it('creates derivative based on scope', () => {
-    const something = derive("some-scope", (payload = "bar") => `foo: ${payload}`)
-    expect(something.get()).toEqual("foo: bar")
+  it('works with multiple signals', async () => {
+    const a = signal(3)
+    const b = signal(4)
+    const result = derive([a, b], (a, b) => a * b)
+    expect(result.value).toEqual(12)
+    a.value = 5
+    await vi.runAllTimersAsync();
+    expect(result.value).toEqual(20)
   })
 })
 
 describe("on", () => {
-  it("can watch multiple signals or topics and is called when either emits", () => {
+  it("can watch multiple signals or topics and is called when either emits", async () => {
     const a = signal("a")
     const b = signal("b")
+
     const cb = vi.fn()
-    // on([a, b], cb);
-    expect(cb).toHaveBeenCalledTimes(0);
+    on([a, b], cb);
+    a.set('c')
+    await vi.runAllTimersAsync();
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(cb).toHaveBeenCalledWith("c", "b");
   })
 })
 
@@ -83,5 +77,37 @@ describe('bind', () => {
     name.value = "peter"
     await vi.runAllTimersAsync();
     expect(el.innerHTML).toEqual("hello peter")
+  })
+
+  it("it also can take multiple", async () => {
+    const name = signal("john");
+    const things = signal(0);
+    const el = document.createElement("div");
+
+    bind([name, things], (name, things) => el.innerHTML = `${name} ${things}`)
+
+    expect(el.innerHTML).toEqual("john 0")
+    name.value = "peter"
+    await vi.runAllTimersAsync();
+    expect(el.innerHTML).toEqual("peter 0")
+    things.value = 3
+    await vi.runAllTimersAsync();
+    expect(el.innerHTML).toEqual("peter 3")
+  })
+
+  it("values can be taken from scope", async () => {
+    const name = signal("john");
+    const things = signal(0);
+    const el = document.createElement("div");
+
+    bind([name, things], () => el.innerHTML = `${name.get()} ${things.get()}`)
+
+    expect(el.innerHTML).toEqual("john 0")
+    name.value = "peter"
+    await vi.runAllTimersAsync();
+    expect(el.innerHTML).toEqual("peter 0")
+    things.value = 3
+    await vi.runAllTimersAsync();
+    expect(el.innerHTML).toEqual("peter 3")
   })
 })

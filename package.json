@@ -2,7 +2,7 @@
   "name": "kloen",
   "description": "super tiny pubsub",
   "homepage": "https://git.sr.ht/~snock/kloen",
-  "version": "0.9.1",
+  "version": "canary",
   "type": "module",
   "files": [
     "lib"

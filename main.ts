@@ -1,45 +1,22 @@
-const QUEUE = new Set<Signal<any>>();
+type Callback<T> = (value: T) => void;
 
-type Scope<T> = string | symbol | Signal<T>;
-type Cb<T> = (value: T) => void;
-
-class MessageBus {
-  listeners = new Map<Scope<any>, Set<Cb<any>>>();
-
-  on<T>(scope: Scope<T>, fn: (value: T) => void) {
-    if (!this.listeners.has(scope)) this.listeners.set(scope, new Set());
-    this.listeners.get(scope)!.add(fn);
-    return () => this.listeners.get(scope)!.delete(fn);
+class Changes {
+  #events = new Set<Signal<any>>();
+  add(signal: Signal<any>) {
+    this.#events.add(signal);
+    queueMicrotask(this.flush.bind(this));
   }
-
-  bind<T>(scope: Scope<T>, callback: (value: T) => void): void {
-    // @ts-ignore
-    callback(scope instanceof Signal ? scope.get() : scope);
-    this.on(scope, callback);
-  }
-
-  emit(scope: Exclude<Scope<any>, Signal<any>>, payload: any) {
-    this.listeners.get(scope)?.forEach((callback: any) =>
-      callback(payload)
-    );
+  flush() {
+    this.#events.forEach(signal => signal.emit());
+    this.#events.clear();
   }
 }
 
-const bus = new MessageBus();
-
-export const on = bus.on.bind(bus)
-export const emit = bus.emit.bind(bus)
-export const bind = bus.bind.bind(bus)
-export const signal = <V>(initialValue: V) => new Signal<V>(initialValue);
-
-const flushEventQueue = () => {
-  // @ts-expect-error - emit should only be called with a signal internally
-  QUEUE.forEach(signal => bus.emit(signal, signal.get()));
-  QUEUE.clear();
-};
+const CHANGES = new Changes()
 
 export class Signal<T> {
   #value: T;
+  #listeners = new Set<Callback<T>>()
 
   constructor(initialValue: T) {
     this.#value = initialValue;
@@ -60,29 +37,53 @@ export class Signal<T> {
 
   set(value: T) {
     this.#value = value;
-    this.#emit();
+    CHANGES.add(this);
   }
 
-  #emit() {
-    QUEUE.add(this);
-    queueMicrotask(flushEventQueue);
+  emit() {
+    const value = this.get()
+    this.#listeners.forEach(fn => fn(value))
+  }
+
+  onChange(cb: Callback<T>) {
+    this.#listeners.add(cb)
   }
 }
 
-export const derive = <Value, S extends Scope<T>, T>(scope: S, cb: (v: S extends Signal<T> ? T : S) => void) => {
-  if (scope instanceof Signal) {
-    const initialValue = cb(scope.get());
+
+const signal_get = (s: Signal<any>) => s.get();
+
+export const derive = <T>(signal: Signal<T>, cb: (value: T) => void) => {
+  if (!Array.isArray(signal)) {
+    const initialValue = cb(signal.get());
     const derived = new Signal(initialValue);
-    bus.on(scope, () =>
-      derived.set(cb(scope.get()))
-    )
+    signal.onChange(value => derived.set(cb(value)))
     return derived
   }
 
-  const initialValue = cb();
-  const derived = new Signal<Value>(initialValue);
-  bus.on<Value | undefined>(scope, (v) =>
-    derived.set(cb(v))
-  )
+  const callback = () => (cb as any)(...signal.map(signal_get))
+  const initialValue = callback()
+  const derived = new Signal(initialValue);
+  signal.forEach(signal => signal.onChange(() => derived.set(callback())))
   return derived
 }
+
+export const on = <T>(signal: Signal<T> | Signal<T>[], cb: Callback<T>) => {
+  if (!Array.isArray(signal)) return signal.onChange(cb)
+  const callback = () => (cb as any)(...signal.map(signal_get))
+  signal.forEach(signal => signal.onChange(callback))
+}
+
+export const bind = <T>(signal: Signal<T> | Signal<any>[], cb: Callback<T>) => {
+  if (!Array.isArray(signal)) {
+    cb(signal.get())
+    on(signal, cb)
+    return
+  }
+
+  const callback = () => (cb as any)(...signal.map(signal_get))
+  signal.forEach(signal => signal.onChange(callback))
+  callback()
+}
+
+export const signal = <V>(initialValue: V) => new Signal<V>(initialValue);
