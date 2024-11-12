@@ -1,7 +1,7 @@
 {
   "name": "leuchten",
   "description": "",
-  "version": "0.0.1-canary.6",
+  "version": "0.0.1-canary.7",
   "type": "module",
   "files": [
     "out"
