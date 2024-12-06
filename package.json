@@ -6,8 +6,8 @@
   "files": [
     "dist"
   ],
-  "types": "./out/kloen.d.ts",
-  "main": "./out/kloen.js",
+  "types": "./dist/kloen.d.ts",
+  "main": "./dist/kloen.js",
   "packageManager": "pnpm",
   "scripts": {
     "dev": "vite",
