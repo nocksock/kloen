@@ -4,9 +4,8 @@
   "version": "0.1.1",
   "type": "module",
   "files": [
-    "out"
+    "dist"
   ],
-  "module": "./out/kloen.js",
   "types": "./out/kloen.d.ts",
   "main": "./out/kloen.js",
   "packageManager": "pnpm",
