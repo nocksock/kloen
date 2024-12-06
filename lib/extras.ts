@@ -1,4 +1,4 @@
-import { on, Signal } from './leuchten'
+import { on, Signal } from './kloen'
 
 export function when(pairs: [Signal<any>, any][], cb: () => void) {
   const signals = pairs.map(([signal]) => signal)

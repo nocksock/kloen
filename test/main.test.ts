@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { derive, on, signal, bind, Signal } from '../lib/leuchten'
+import { derive, on, signal, bind, Signal } from '../lib/kloen'
+
+const s = signal('foo')
+
+const foo = <T>(p: Signal<T>) => {
+  return p.get()
+}
+
+const b = foo(s)
 
 describe('Signal', () => {
   vi.useFakeTimers()
@@ -16,12 +24,12 @@ describe('Signal', () => {
     const cb = vi.fn()
     const unsub = on(thing, cb)
 
-    thing.set('123')
-    thing.set('123')
-    thing.set('123')
+    thing.set('foo')
+    thing.set('abc')
+    thing.set('333')
     thing.set('123')
 
-    // call every function only once
+    // calls only the last one
     expect(cb).not.toHaveBeenCalled()
     await vi.runAllTimersAsync()
 

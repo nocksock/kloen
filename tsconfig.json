@@ -10,5 +10,5 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "files": ["lib/main.ts"]
+  "files": ["lib/kloen.ts"]
 }

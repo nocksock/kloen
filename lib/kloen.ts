@@ -100,10 +100,7 @@ export class Signal<T> {
   ): Signal<U> {
     const reduced = new Signal<U>(initialValue)
 
-    this.onChange(value => {
-      console.log('changed')
-      reduced.update(acc => reducer(acc, value))
-    })
+    this.onChange(value => void reduced.update(acc => reducer(acc, value)))
 
     return reduced
   }

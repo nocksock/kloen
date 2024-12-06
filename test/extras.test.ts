@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { signal, on, Signal } from '../lib/leuchten'
+import { signal, on, Signal } from '../lib/kloen'
 import { when, throttle, combine, debounce } from '../lib/extras'
 
 vi.useFakeTimers()
