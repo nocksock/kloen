@@ -1,4 +1,4 @@
-import { on, Signal } from './kloen'
+import { on, ReadableSignal, ReadonlySignal, Signal } from '../kloen'
 
 type FilterPredicate<T> = (value: T, index: number, array: T[]) => boolean
 
@@ -20,7 +20,9 @@ export function when(pairs: [Signal<any>, any][], cb: () => void) {
  */
 export const combine = <T extends Record<string, Signal<any>>>(
   signals: T
-): Signal<{ [K in keyof T]: T[K] extends Signal<infer U> ? U : never }> => {
+): ReadonlySignal<{
+  [K in keyof T]: T[K] extends Signal<infer U> ? U : never
+}> => {
   const keys = Object.keys(signals) as (keyof T)[]
   const initial = {} as {
     [K in keyof T]: T[K] extends Signal<infer U> ? U : never
@@ -46,7 +48,10 @@ export const combine = <T extends Record<string, Signal<any>>>(
   return combined
 }
 
-export const throttle = <T>(signal: Signal<T>, ms: number): Signal<T> => {
+export const throttle = <T>(
+  signal: Signal<T>,
+  ms: number
+): ReadonlySignal<T> => {
   const throttled = new Signal<T>(signal.get())
   let lastRun = 0
   let timeout: ReturnType<typeof setTimeout> | null = null
@@ -73,7 +78,10 @@ export const throttle = <T>(signal: Signal<T>, ms: number): Signal<T> => {
   return throttled
 }
 
-export const debounce = <T>(signal: Signal<T>, ms: number): Signal<T> => {
+export const debounce = <T>(
+  signal: Signal<T>,
+  ms: number
+): ReadonlySignal<T> => {
   const debounced = new Signal<T>(signal.get())
   let timeoutId: ReturnType<typeof setTimeout>
 
@@ -88,8 +96,8 @@ export const debounce = <T>(signal: Signal<T>, ms: number): Signal<T> => {
 }
 
 export const filter = <T>(
-  signal: Signal<T[]>,
+  signal: ReadableSignal<T[]>,
   predicate: FilterPredicate<T>
-): Signal<T[]> => {
+): ReadonlySignal<T[]> => {
   return signal.map(list => list.filter(predicate))
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { signal, on, Signal } from '../lib/kloen'
-import { when, throttle, combine, debounce, filter } from '../lib/extras'
+import { when, throttle, combine, debounce, filter } from '../lib/kloen/extras'
 
 vi.useFakeTimers()
 

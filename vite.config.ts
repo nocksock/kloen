@@ -7,7 +7,13 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: ['./lib/kloen.ts', './lib/extras.ts'],
+      entry: ['./lib/kloen.ts', './lib/kloen/extras.ts'],
+    },
+    rollupOptions: {
+      input: {
+        kloen: 'lib/kloen.ts',
+        'kloen/extras': 'lib/kloen/extras.ts',
+      },
     },
   },
 })

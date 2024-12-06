@@ -24,9 +24,9 @@ const CHANGES = new Changes()
  * the same result for both. It's a soft protection to not accidentally update
  * a derived signal.
  */
-type ReadonlySignal<T> = Omit<Signal<T>, 'set' | 'update'>
+export type ReadonlySignal<T> = Omit<Signal<T>, 'set' | 'update'>
 
-type ReadableSignal<T> = Signal<T> | ReadonlySignal<T>
+export type ReadableSignal<T> = Signal<T> | ReadonlySignal<T>
 
 export class Signal<T> {
   #value: T
