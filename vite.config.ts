@@ -7,9 +7,7 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: './lib/kloen.ts',
-      name: 'kloen',
-      fileName: 'kloen',
+      entry: ['./lib/kloen.ts', './lib/extras.ts'],
     },
   },
 })
