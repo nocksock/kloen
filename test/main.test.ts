@@ -1,14 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { derive, on, signal, bind, Signal } from '../lib/kloen'
 
-const s = signal('foo')
-
-const foo = <T>(p: Signal<T>) => {
-  return p.get()
-}
-
-const b = foo(s)
-
 describe('Signal', () => {
   vi.useFakeTimers()
 
@@ -143,6 +135,9 @@ describe('Signal#update', () => {
     await vi.runAllTimersAsync()
     expect(count.value).toBe(2)
 
+    // additional params to update will be passed to the update fn.
+    // useful to define update functions in a place without access to the
+    // closure when its needed.
     count.update((n, m) => n + m, 5)
     await vi.runAllTimersAsync()
     expect(count.value).toBe(7)
@@ -195,10 +190,10 @@ describe('Signal methods', () => {
 describe('Signal additional features', () => {
   vi.useFakeTimers()
 
-  describe('filter', () => {
+  describe('when', () => {
     it('only updates when predicate is true', async () => {
       const numbers = signal(0)
-      const evenNumbers = numbers.filter(n => n % 2 === 0)
+      const evenNumbers = numbers.when(n => n % 2 === 0)
 
       numbers.value = 1
       await vi.runAllTimersAsync()

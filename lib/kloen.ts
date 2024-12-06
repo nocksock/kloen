@@ -4,8 +4,8 @@ type Callback<T> = (value: T) => void
 const invoke = <R>(f: () => R) => f()
 
 class Changes {
-  #events = new Set<Signal<any>>()
-  add(signal: Signal<any>) {
+  #events = new Set<ReadableSignal<any>>()
+  add(signal: ReadableSignal<any>) {
     this.#events.add(signal)
     queueMicrotask(this.flush.bind(this))
   }
@@ -16,6 +16,17 @@ class Changes {
 }
 
 const CHANGES = new Changes()
+
+/**
+ * Readonly signals are usually derived from other signals.
+ *
+ * Note: atm the difference is only in typescript, so `instanceof` will yield
+ * the same result for both. It's a soft protection to not accidentally update
+ * a derived signal.
+ */
+type ReadonlySignal<T> = Omit<Signal<T>, 'set' | 'update'>
+
+type ReadableSignal<T> = Signal<T> | ReadonlySignal<T>
 
 export class Signal<T> {
   #value: T
@@ -57,11 +68,11 @@ export class Signal<T> {
     return () => this.#listeners.delete(cb)
   }
 
-  map<U>(fn: (value: T) => U): Signal<U> {
+  map<U>(fn: (value: T) => U): ReadonlySignal<U> {
     return derive(this, fn)
   }
 
-  flatMap<U>(fn: (value: T) => Signal<U>): Signal<U> {
+  flatMap<U>(fn: (value: T) => ReadableSignal<U>): ReadonlySignal<U> {
     const result = new Signal<U>(fn(this.get()).get())
     this.onChange(value => {
       const innerSignal = fn(value)
@@ -71,7 +82,7 @@ export class Signal<T> {
     return result
   }
 
-  ap<U>(signalOfFn: Signal<(value: T) => U>): Signal<U> {
+  ap<U>(signalOfFn: ReadableSignal<(value: T) => U>): ReadonlySignal<U> {
     const result = new Signal<U>(signalOfFn.get()(this.get()))
 
     signalOfFn.onChange(fn => result.set(fn(this.get())))
@@ -84,20 +95,20 @@ export class Signal<T> {
     return fn(this.get(), ...args)
   }
 
-  filter(predicate: (value: T) => boolean): Signal<T> {
-    const filtered = new Signal<T>(this.#value)
-    this.onChange(value => {
-      if (predicate(value)) {
-        filtered.set(value)
+  when(predicate: (value: T) => boolean): ReadonlySignal<T> {
+    const lastValue = new Signal<T>(this.#value)
+    this.onChange(newValue => {
+      if (predicate(newValue)) {
+        lastValue.set(newValue)
       }
     })
-    return filtered
+    return lastValue
   }
 
   reduce<U>(
     reducer: (accumulator: U, current: T) => U,
     initialValue: U
-  ): Signal<U> {
+  ): ReadonlySignal<U> {
     const reduced = new Signal<U>(initialValue)
 
     this.onChange(value => void reduced.update(acc => reducer(acc, value)))
@@ -127,7 +138,9 @@ export class Signal<T> {
     }
   }
 
-  distinct(compareFn: (a: T, b: T) => boolean = (a, b) => a === b): Signal<T> {
+  distinct(
+    compareFn: (a: T, b: T) => boolean = (a, b) => a === b
+  ): ReadonlySignal<T> {
     const distinct = new Signal<T>(this.#value)
     let lastValue = this.#value
 
@@ -152,9 +165,12 @@ export class Signal<T> {
   }
 }
 
-const signal_get = (s: Signal<any>) => s.get()
+const signal_get = (s: ReadableSignal<any>) => s.get()
 
-export const derive = <T, R>(signal: Signal<T>, cb: (value: T) => R) => {
+export const derive = <T, R>(
+  signal: ReadableSignal<T>,
+  cb: (value: T) => R
+) => {
   if (!Array.isArray(signal)) {
     const initialValue = cb(signal.get())
     const derived = new Signal(initialValue)
@@ -169,14 +185,20 @@ export const derive = <T, R>(signal: Signal<T>, cb: (value: T) => R) => {
   return derived
 }
 
-export const on = <T>(signal: Signal<T> | Signal<T>[], cb: Callback<T>) => {
+export const on = <T>(
+  signal: ReadableSignal<T> | ReadableSignal<T>[],
+  cb: Callback<T>
+) => {
   if (!Array.isArray(signal)) return signal.onChange(cb)
   const callback = () => (cb as any)(...signal.map(signal_get))
   const unsubs = signal.map(signal => signal.onChange(callback))
   return () => unsubs.forEach(invoke)
 }
 
-export const bind = <T>(signal: Signal<T> | Signal<any>[], cb: Callback<T>) => {
+export const bind = <T>(
+  signal: ReadableSignal<T> | ReadableSignal<any>[],
+  cb: Callback<T>
+) => {
   if (!Array.isArray(signal)) {
     cb(signal.get())
     on(signal, cb)

@@ -1,5 +1,7 @@
 import { on, Signal } from './kloen'
 
+type FilterPredicate<T> = (value: T, index: number, array: T[]) => boolean
+
 export function when(pairs: [Signal<any>, any][], cb: () => void) {
   const signals = pairs.map(([signal]) => signal)
 
@@ -83,4 +85,11 @@ export const debounce = <T>(signal: Signal<T>, ms: number): Signal<T> => {
   })
 
   return debounced
+}
+
+export const filter = <T>(
+  signal: Signal<T[]>,
+  predicate: FilterPredicate<T>
+): Signal<T[]> => {
+  return signal.map(list => list.filter(predicate))
 }

@@ -64,14 +64,14 @@ export class Signal {
     call(fn, ...args) {
         return fn(this.get(), ...args);
     }
-    filter(predicate) {
-        const filtered = new Signal(this.#value);
-        this.onChange(value => {
-            if (predicate(value)) {
-                filtered.set(value);
+    when(predicate) {
+        const lastValue = new Signal(this.#value);
+        this.onChange(newValue => {
+            if (predicate(newValue)) {
+                lastValue.set(newValue);
             }
         });
-        return filtered;
+        return lastValue;
     }
     reduce(reducer, initialValue) {
         const reduced = new Signal(initialValue);

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { signal, on, Signal } from '../lib/kloen'
-import { when, throttle, combine, debounce } from '../lib/extras'
+import { when, throttle, combine, debounce, filter } from '../lib/extras'
 
 vi.useFakeTimers()
 
@@ -101,5 +101,17 @@ describe('debounce', () => {
     await vi.advanceTimersByTimeAsync(100)
     expect(cb).toHaveBeenCalledTimes(1)
     expect(cb).toHaveBeenCalledWith('hello')
+  })
+})
+
+describe('filter', () => {
+  it('filters an array within a signal', async () => {
+    const input = signal([1, 2, 3, 4])
+    const even = filter(input, i => i % 2 === 0)
+
+    expect(even.get()).toEqual([2, 4])
+    input.update(list => [...list, 5, 6])
+    await vi.runAllTimersAsync()
+    expect(even.get()).toEqual([2, 4, 6])
   })
 })
