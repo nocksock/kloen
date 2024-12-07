@@ -1,21 +1,32 @@
 {
   "name": "kloen",
   "description": "",
-  "version": "0.1.3",
+  "version": "0.1.8",
   "type": "module",
   "types": "./dist/types.d.ts",
+  "module": "./dist/kloen.js",
+  "main": "./dist/kloen.js",
   "exports": {
-    ".": "./dist/kloen.js",
-    "./*": "./dist/kloen/*"
+    ".": {
+      "types": "./dist/kloen.d.ts",
+      "default": "./dist/kloen.js"
+    },
+    "./extras": {
+      "types": "./dist/kloen/extras.d.ts",
+      "default": "./dist/kloen/extras.js"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "packageManager": "pnpm",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest --environment jsdom",
-    "release:minor": "tsc && pnpm version minor && pnpm publish --no-git-checks",
-    "release:patch": "tsc && pnpm version patch && pnpm publish --no-git-checks",
-    "release:canary": "tsc && pnpm version prerelease --preid=canary && pnpm publish --tag canary",
+    "release:minor": "pnpm run build && pnpm version minor && pnpm publish --no-git-checks",
+    "release:patch": "pnpm run build && pnpm version patch && pnpm publish --no-git-checks",
+    "release:canary": "pnpm run build && pnpm version prerelease --preid=canary && pnpm publish --tag canary",
     "gzip:watch": "fd | entr zsh -c pnpm run gzip:check",
     "gzip:check": "cat out/main.js| gzip -9 > out/main.js.gz  && ls -la out/"
   },
