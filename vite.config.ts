@@ -1,19 +1,22 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig({
-  esbuild: {
-    minifySyntax: true,
-    minifyWhitespace: true,
-  },
   build: {
     lib: {
-      entry: ['./lib/kloen.ts', './lib/kloen/extras.ts'],
+      entry: {
+        'kloen': resolve(__dirname, 'lib/kloen.ts'),
+        'kloen/extras': resolve(__dirname, 'lib/kloen/extras.ts')
+      },
+      formats: ['es'],
+      fileName: (format, entryName) => `${entryName}.js`
     },
     rollupOptions: {
-      input: {
-        kloen: 'lib/kloen.ts',
-        'kloen/extras': 'lib/kloen/extras.ts',
-      },
-    },
-  },
+      external: [],
+      output: {
+        preserveModules: true,
+        entryFileNames: '[name].js'
+      }
+    }
+  }
 })
