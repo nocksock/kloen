@@ -8,7 +8,7 @@
   "main": "./dist/kloen.js",
   "exports": {
     ".": {
-      "types": "./dist/kloen.d.ts",
+      "types": "./dist/types.d.ts",
       "default": "./dist/kloen.js"
     },
     "./extras": {
