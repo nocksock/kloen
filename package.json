@@ -32,8 +32,12 @@
   },
   "devDependencies": {
     "jsdom": "^25.0.1",
+    "react": "^19.0.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.10",
     "vitest": "^2.1.4"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
   }
 }
