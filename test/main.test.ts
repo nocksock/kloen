@@ -144,6 +144,20 @@ describe('Signal#update', () => {
   })
 })
 
+describe('Signal#mutate', () => {
+  it('sets value using update function', async () => {
+    const $items = signal([] as number[])
+    $items.mutate(n => n.push(1))
+    await vi.runAllTimersAsync()
+    expect($items.value).toEqual([1])
+
+    $items.mutate((n, m) => n.push(m), 5)
+    await vi.runAllTimersAsync()
+
+    expect($items.value).toEqual([1,5])
+  })
+})
+
 describe('Signal#flatMap', () => {
   it('is an applicative', async () => {
     const a = signal(5)

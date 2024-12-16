@@ -58,6 +58,11 @@ export class Signal<T> {
     CHANGES.add(this)
   }
 
+  mutate(fn: (value: T, ...args: any[]) => any, ...args: any[]) {
+    fn(this.#value, ...args)
+    CHANGES.add(this)
+  }
+
   emit() {
     const value = this.get()
     this.#listeners.forEach(fn => fn(value))
