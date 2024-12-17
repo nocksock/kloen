@@ -5,8 +5,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        'kloen': resolve(__dirname, 'lib/kloen.ts'),
-        'kloen/extras': resolve(__dirname, 'lib/kloen/extras.ts')
+        'kloen': resolve(__dirname, 'src/kloen.ts'),
+        'kloen/extras': resolve(__dirname, 'src/extras.ts')
       },
       formats: ['es'],
       fileName: (format, entryName) => `${entryName}.js`

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { derive, on, signal, effect, Signal } from '../lib/kloen'
+import { distinct, reduce, ap, flatMap, when } from '../src/extras'
+import { update, mutate, call, map, derive, watch, signal, effect, batch } from '../src/kloen'
 
 describe('Signal', () => {
   vi.useFakeTimers()
@@ -14,7 +15,7 @@ describe('Signal', () => {
   it('can be observed via on', async () => {
     const thing = signal('abc')
     const cb = vi.fn()
-    const unsub = on(thing, cb)
+    const unsub = watch(thing, cb)
 
     thing.set('foo')
     thing.set('abc')
@@ -39,7 +40,7 @@ describe('Signal', () => {
     const a = signal(3)
     const b = derive(a, a => a * a)
     const cb = vi.fn()
-    on(b, cb)
+    watch(b, cb)
     expect(b.get()).toEqual(9)
     a.set(4)
     await vi.runAllTimersAsync()
@@ -49,11 +50,11 @@ describe('Signal', () => {
 
 describe('derive', () => {
   it('works with multiple signals', async () => {
-    const a = signal(3)
-    const b = signal(4)
-    const result = derive([a, b], (a, b) => a * b)
+    const $a = signal(3)
+    const $b = signal(4)
+    const result = derive([$a, $b], (a, b) => a * b)
     expect(result.value).toEqual(12)
-    a.value = 5
+    $a.value = 5
     await vi.runAllTimersAsync()
     expect(result.value).toEqual(20)
   })
@@ -65,7 +66,7 @@ describe('on', () => {
     const b = signal('b')
 
     const cb = vi.fn()
-    on([a, b], cb)
+    watch([a, b], cb)
     a.set('c')
     await vi.runAllTimersAsync()
     expect(cb).toHaveBeenCalledTimes(1)
@@ -105,17 +106,17 @@ describe('bind', () => {
   // TODO: maybe displaying `Signal(john)` would be better to make it more
   // transparent that it's not a value.
   it('values can be taken from scope, toString called automatically', async () => {
-    const name = signal('john')
-    const things = signal(0)
+    const $name = signal('john')
+    const $things = signal(0)
     const el = document.createElement('div')
 
-    effect([name, things], () => (el.innerHTML = `${name} ${things}`))
+    effect([$name, $things], () => (el.innerHTML = `${$name} ${$things}`))
 
     expect(el.innerHTML).toEqual('john 0')
-    name.value = 'peter'
+    $name.value = 'peter'
     await vi.runAllTimersAsync()
     expect(el.innerHTML).toEqual('peter 0')
-    things.value = 3
+    $things.value = 3
     await vi.runAllTimersAsync()
     expect(el.innerHTML).toEqual('peter 3')
   })
@@ -130,41 +131,48 @@ describe('bind', () => {
 
 describe('Signal#update', () => {
   it('sets value using update function', async () => {
-    const count = signal(1)
-    count.update(n => n + 1)
+    const $count = signal(1)
+    update($count, n => n + 1)
     await vi.runAllTimersAsync()
-    expect(count.value).toBe(2)
+    expect($count.value).toBe(2)
 
     // additional params to update will be passed to the update fn.
     // useful to define update functions in a place without access to the
     // closure when its needed.
-    count.update((n, m) => n + m, 5)
+    update($count, (n, m) => n + m, 5)
     await vi.runAllTimersAsync()
-    expect(count.value).toBe(7)
+    expect($count.value).toBe(7)
   })
 })
 
-describe('Signal#mutate', () => {
-  it('sets value using update function', async () => {
+describe('mutate', () => {
+  it('mutate the internal value', async () => {
+    const $items = signal([] as number[])
+    mutate($items, n => n.push(1))
+    await vi.runAllTimersAsync()
+    expect($items.value).toEqual([1])
+    mutate($items, (n, m) => n.push(m), 5)
+    await vi.runAllTimersAsync()
+    expect($items.value).toEqual([1, 5])
+  })
+  it('mutate the internal value', async () => {
     const $items = signal([] as number[])
     $items.mutate(n => n.push(1))
     await vi.runAllTimersAsync()
     expect($items.value).toEqual([1])
-
-    $items.mutate((n, m) => n.push(m), 5)
+    mutate($items, (n, m) => n.push(m), 5)
     await vi.runAllTimersAsync()
-
     expect($items.value).toEqual([1, 5])
   })
 })
 
 describe('Signal#flatMap', () => {
   it('is an applicative', async () => {
-    const a = signal(5)
-    const result = a.flatMap(x => signal(x * 2))
+    const $a = signal(5)
+    const result = flatMap($a, x => signal(x * 2))
     expect(result.value).toBe(10)
 
-    a.value = 10
+    $a.value = 10
     await vi.runAllTimersAsync()
     expect(result.value).toBe(20)
   })
@@ -172,9 +180,9 @@ describe('Signal#flatMap', () => {
 
 describe('Signal#ap', () => {
   it('is an applicative', async () => {
-    const value = signal(5)
+    const $val = signal(5)
     const fn = signal((x: number) => x * 2)
-    const result = value.ap(fn)
+    const result = ap($val, fn)
     expect(result.value).toBe(10)
 
     fn.value = (x: number) => x * 3
@@ -185,18 +193,18 @@ describe('Signal#ap', () => {
 
 describe('Signal methods', () => {
   it('supports map for deriving new signals', async () => {
-    const a = signal(5)
-    const b = a.map(x => x * 2)
-    expect(b.value).toBe(10)
+    const $a = signal(5)
+    const $b = map($a, x => x * 2)
+    expect($b.value).toBe(10)
 
-    a.value = 10
+    $a.value = 10
     await vi.runAllTimersAsync()
-    expect(b.value).toBe(20)
+    expect($b.value).toBe(20)
   })
 
   it('supports call for applying functions with args', () => {
-    const a = signal(5)
-    const result = a.call((x, y) => x + y, 3)
+    const $a = signal(5)
+    const result = call($a, (x, y) => x + y, 3)
     expect(result).toBe(8)
   })
 })
@@ -207,7 +215,7 @@ describe('Signal additional features', () => {
   describe('when', () => {
     it('only updates when predicate is true', async () => {
       const numbers = signal(0)
-      const evenNumbers = numbers.when(n => n % 2 === 0)
+      const evenNumbers = when(numbers, n => n % 2 === 0)
 
       numbers.value = 1
       await vi.runAllTimersAsync()
@@ -222,7 +230,7 @@ describe('Signal additional features', () => {
   describe('reduce', () => {
     it('accumulates values over time', async () => {
       const events = signal(0)
-      const sum = events.reduce((acc, curr) => acc + curr, 0)
+      const sum = reduce(events, (acc, curr) => acc + curr, 0)
 
       // TODO: maybe reduce should consume eagerly
       events.value = 1
@@ -239,10 +247,10 @@ describe('Signal additional features', () => {
   describe('distinct', () => {
     it('only emits when value actually changes', async () => {
       const value = signal(1)
-      const distinct = value.distinct()
+      const $distinct = distinct(value)
       const cb = vi.fn()
 
-      on(distinct, cb)
+      watch($distinct, cb)
 
       value.value = 1
       value.value = 1
@@ -260,9 +268,9 @@ describe('Signal additional features', () => {
       const counter = signal(0)
       const cb = vi.fn()
 
-      on(counter, cb)
+      watch(counter, cb)
 
-      Signal.batch(() => {
+      batch(() => {
         counter.value = 1
         counter.value = 2
         counter.value = 3

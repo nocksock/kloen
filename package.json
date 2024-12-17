@@ -24,6 +24,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest --environment jsdom",
+    "gh:issue": "gh issue -R nocksock/kloen",
     "release:minor": "pnpm run build && pnpm version minor && pnpm publish --no-git-checks",
     "release:patch": "pnpm run build && pnpm version patch && pnpm publish --no-git-checks",
     "release:canary": "pnpm run build && pnpm version prerelease --preid=canary && pnpm publish --tag canary",
