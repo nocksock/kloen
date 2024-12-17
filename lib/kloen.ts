@@ -200,7 +200,7 @@ export const on = <T>(
   return () => unsubs.forEach(invoke)
 }
 
-export const bind = <T>(
+export const effect = <T>(
   signal: ReadableSignal<T> | ReadableSignal<any>[],
   cb: Callback<T>
 ) => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { derive, on, signal, bind, Signal } from '../lib/kloen'
+import { derive, on, signal, effect, Signal } from '../lib/kloen'
 
 describe('Signal', () => {
   vi.useFakeTimers()
@@ -78,7 +78,7 @@ describe('bind', () => {
     const name = signal('john')
     const el = document.createElement('div')
 
-    bind(name, value => (el.innerHTML = `hello ${value}`))
+    effect(name, value => (el.innerHTML = `hello ${value}`))
     expect(el.innerHTML).toEqual('hello john')
     name.value = 'peter'
     await vi.runAllTimersAsync()
@@ -91,7 +91,7 @@ describe('bind', () => {
     const el = document.createElement('div')
 
     // @ts-ignore
-    bind([name, things], (name, things) => (el.innerHTML = `${name} ${things}`))
+    effect([name, things], (name, things) => (el.innerHTML = `${name} ${things}`))
 
     expect(el.innerHTML).toEqual('john 0')
     name.value = 'peter'
@@ -109,7 +109,7 @@ describe('bind', () => {
     const things = signal(0)
     const el = document.createElement('div')
 
-    bind([name, things], () => (el.innerHTML = `${name} ${things}`))
+    effect([name, things], () => (el.innerHTML = `${name} ${things}`))
 
     expect(el.innerHTML).toEqual('john 0')
     name.value = 'peter'
@@ -154,7 +154,7 @@ describe('Signal#mutate', () => {
     $items.mutate((n, m) => n.push(m), 5)
     await vi.runAllTimersAsync()
 
-    expect($items.value).toEqual([1,5])
+    expect($items.value).toEqual([1, 5])
   })
 })
 
