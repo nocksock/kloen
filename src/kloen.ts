@@ -1,26 +1,20 @@
-const Value = Symbol('signal_value')
-const Listeners = Symbol('signal_listeners')
+const VALUES = new WeakMap();
+const LISTENERS = new WeakMap()
 
 export type SignalFn<F> = F extends (self: any, ...args: infer P) => infer R
   ? (...args: P) => R
   : never
 
 
-interface Observable<T> {
+export interface Observable<T> {
   (): T
-  [Value]: T
-  [Listeners]: Set<Callback<T>>,
   emit(): SignalFn<typeof emit<T>>
 }
 
-interface MutableObservable<V> extends Observable<V> {
+export interface MutableObservable<V> extends Observable<V> {
   set(value: V): void
-  // mutate: SignalFn<typeof mutate<T>>
 }
 
-type Value = typeof Value
-type Listeners = typeof Listeners
-type ObservableMethod<V> = <R>(self: Observable<V>, ...args: any[]) => R
 type Callback<T> = (value: T) => void
 
 const Changes = {
@@ -42,11 +36,11 @@ const Changes = {
 }
 
 export function read<T>(self: Observable<T>) {
-  return self[Value]
+  return VALUES.get(self)
 }
 
 export function write<T>(self: MutableObservable<T>, value: T) {
-  self[Value] = value
+  VALUES.set(self, value)
   return Changes.add(self)
 }
 
@@ -57,10 +51,14 @@ const invoke = <R>(f: () => R) => f()
  * its inputs.
  */
 export function update<T>(self: MutableObservable<T>, fn: (value: T, ...args: any[]) => T, ...args: any[]) {
-  self[Value] = fn(self(), ...args)
+  write(self, fn(self(), ...args))
   return Changes.add(self)
 }
 
+/**
+ * When the signal holds a particularly large non-primitive value, eg. an
+ * Object, you can use this to mutate that object.
+ */
 export function mutate<T>(self: MutableObservable<T>, fn: (value: T, ...args: any[]) => any, ...args: any[]) {
   fn(self(), ...args)
   return Changes.add(self)
@@ -68,7 +66,7 @@ export function mutate<T>(self: MutableObservable<T>, fn: (value: T, ...args: an
 
 export function emit<T>(self: Observable<T>) {
   const value = self()
-  self[Listeners].forEach(fn => fn(value))
+  LISTENERS.get(self).forEach((fn: Callback<T>) => fn(value))
 }
 
 export function map<T, U>(self: Observable<T>, fn: (value: T) => U): Observable<U> {
@@ -79,12 +77,12 @@ export function call<T, U>(self: Observable<T>, fn: (value: T, ...args: any[]) =
   return fn(self(), ...args)
 }
 
-export const derive = <T, R, S>(
-  self: Observable<S> | Observable<S>[],
+export const derive = <T, R>(
+  self: Observable<T> | Observable<T>[],
   // TODO: fix this type
   cb: Function extends (...args: infer P) => R
     ? (...args: P) => R
-    : (arg: S) => R
+    : (arg: T) => R
 ) => {
   if (Array.isArray(self)) {
     const callback = () => (cb as any)(...self.map(invoke))
@@ -102,10 +100,17 @@ export const derive = <T, R, S>(
 }
 
 function subscribe<T>(self: Observable<T>, cb: Callback<T>) {
-  self[Listeners].add(cb)
-  return () => self[Listeners].delete(cb)
+  LISTENERS.get(self).add(cb)
+  return () => LISTENERS.get(self).delete(cb)
 }
 
+/**
+ * Observe a value and trigger a callback whenever it updates. Stop observing
+ * by calling the return value - which is an unsubscribe function.
+ *
+ * Callback is *not* called immediately it waits for the next update. Use
+ * `effect` for that.
+ */
 export function watch<T>(
   self: Observable<T> | Observable<T>[],
   cb: Callback<T>
@@ -116,6 +121,11 @@ export function watch<T>(
   return () => unsubs.forEach(invoke)
 }
 
+/**
+ * Similar to watch, but is called immediately. This should be your preferred
+ * way to create side effects. The callback is expected to return a cleanup 
+ * function.
+ */
 export function effect<T>(
   $signal: Observable<T> | Observable<any>[],
   cb: Callback<T>
@@ -156,13 +166,14 @@ function toString<T extends { toString: () => string }>(self: Observable<T>) {
 }
 
 export function signal<T>(value: T, serialise = toString): MutableObservable<T> {
-  const self = (() => self[Value]) as MutableObservable<T>
+  const self = (() => read(self)) as MutableObservable<T>
 
-  self[Value] = value
-  self[Listeners] = new Set<Callback<T>>()
+  VALUES.set(self, value)
+  LISTENERS.set(self, new Set<Callback<T>>())
 
   // @ts-ignore
   self.toString = serialise.bind(null, self)
+
   // @ts-ignore
   self.set = write.bind(null, self)
 

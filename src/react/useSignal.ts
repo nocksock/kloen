@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react"
-import { Signal } from "../kloen"
+import { MutableObservable, Observable, watch, write } from "../kloen"
 
-export const useSignal = <T extends any>(s: Signal<T>) => {
-  const [value, setValue] = useState<T>(s.get())
-  useEffect(() => s.onChange(setValue), [])
-  return [value, setValue]
+export const useSignal = <T extends any>($value: MutableObservable<T>) => {
+  const [value, setValue] = useState<T>($value())
+  useEffect(() => watch($value, setValue), [])
+  return [value, write.bind(null, $value)]
+}
+
+export const useSignalValue = <T extends any>($value: Observable<T>) => {
+  const [value, setValue] = useState<T>($value())
+  useEffect(() => watch($value, setValue), [])
+  return value
 }

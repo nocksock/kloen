@@ -1,6 +1,7 @@
-import { signal } from "../src/kloen.ts"
-
-const Value = Symbol('signal_value')
+// @ts-nocheck
+// import { signal } from "../src/kloen.ts"
+//
+// const Value = Symbol('signal_value')
 
 const ITERATIONS = 100_000;
 
@@ -12,35 +13,63 @@ const ITERATIONS = 100_000;
 
 // even when switching things around, calling is a little bit faster.
 
-Deno.bench({
-  name: "getter",
-  fn: () => {
-    const $value = signal("foobar")
-    const store = new Map()
-    for (let i = 0; i < ITERATIONS; i++) {
-      store.set(`f${i}`, JSON.stringify($value.value));
-    }
-  },
-});
+// Deno.bench({
+//   name: "getter",
+//   fn: () => {
+//     const $value = signal("foobar")
+//     const store = new Map()
+//     for (let i = 0; i < ITERATIONS; i++) {
+//       store.set(`f${i}`, JSON.stringify($value.value));
+//     }
+//   },
+// });
+
+// Deno.bench({
+//   name: "getter fn",
+//   fn: () => {
+//     const $value = signal("foobar")
+//     const store = new Map()
+//     for (let i = 0; i < ITERATIONS; i++) {
+//       store.set(`f${i}`, JSON.stringify($value.get()));
+//     }
+//   },
+// });
+
+// Deno.bench({
+//   name: "calling",
+//   fn: () => {
+//     const $value = signal("foobar")
+//     const store = new Map()
+//     for (let i = 0; i < ITERATIONS; i++) {
+//       store.set(`f${i}`, JSON.stringify($value()));
+//     }
+//   },
+// });
+
+
+
+const storage = new WeakMap<symbol, unknown>()
+
+const symbolSignal = initialValue => {
+  const sym: unique symbol = Symbol()
+  storage.set(sym, initialValue)
+  return sym
+}
+
+const readSignal = symbol => storage.get(symbol)
+
+const writeSignal = (symbol, newValue) => {
+  storage.set(symbol, newValue)
+  return newValue
+}
 
 Deno.bench({
-  name: "getter fn",
+  name: "read sim",
   fn: () => {
-    const $value = signal("foobar")
+    const $value = symbolSignal("foobar")
     const store = new Map()
     for (let i = 0; i < ITERATIONS; i++) {
-      store.set(`f${i}`, JSON.stringify($value.get()));
-    }
-  },
-});
-
-Deno.bench({
-  name: "calling",
-  fn: () => {
-    const $value = signal("foobar")
-    const store = new Map()
-    for (let i = 0; i < ITERATIONS; i++) {
-      store.set(`f${i}`, JSON.stringify($value()));
+      store.set(`f${i}`, JSON.stringify(readSignal($value)));
     }
   },
 });
