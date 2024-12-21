@@ -1,30 +1,34 @@
 const Value = Symbol('signal_value')
 const Listeners = Symbol('signal_listeners')
 
-type Value = typeof Value
-type Listeners = typeof Listeners
-type SignalMethod<V> = <R>(self: Signal<V>, ...args: any[]) => R
-type Callback<T> = (value: T) => void
+export type SignalFn<F> = F extends (self: any, ...args: infer P) => infer R
+  ? (...args: P) => R
+  : never
 
-export interface Signal<T> {
+
+interface Observable<T> {
   (): T
-  value: T
-  set(value: T): void
-  get(): void
   [Value]: T
   [Listeners]: Set<Callback<T>>,
-  toString: () => string
-  // TODO, fix type
-  // @ts-ignore
-  mutate: SignalFn<typeof mutate>
+  emit(): SignalFn<typeof emit<T>>
 }
 
-const Changes = {
-  queue: new Set<Signal<any>>(),
-  batchDepth: 0,
-  batchQueue: new Set<Signal<any>>(),
+interface MutableObservable<V> extends Observable<V> {
+  set(value: V): void
+  // mutate: SignalFn<typeof mutate<T>>
+}
 
-  add<T>(event: Signal<T>) {
+type Value = typeof Value
+type Listeners = typeof Listeners
+type ObservableMethod<V> = <R>(self: Observable<V>, ...args: any[]) => R
+type Callback<T> = (value: T) => void
+
+const Changes = {
+  queue: new Set<Observable<any>>(),
+  batchDepth: 0,
+  batchQueue: new Set<Observable<any>>(),
+
+  add<T>(event: Observable<T>) {
     const target = Changes.batchDepth > 0 ? Changes.batchQueue : Changes.queue
     target.add(event)
     queueMicrotask(Changes.flush)
@@ -37,11 +41,11 @@ const Changes = {
   }
 }
 
-export function read(self: Signal<unknown>) {
+export function read<T>(self: Observable<T>) {
   return self[Value]
 }
 
-export function write<T>(self: Signal<T>, value: T) {
+export function write<T>(self: MutableObservable<T>, value: T) {
   self[Value] = value
   return Changes.add(self)
 }
@@ -52,31 +56,31 @@ const invoke = <R>(f: () => R) => f()
  * Update the value using a pure function that returns the new value based on
  * its inputs.
  */
-export function update<T>(self: Signal<T>, fn: (value: T, ...args: any[]) => T, ...args: any[]) {
+export function update<T>(self: MutableObservable<T>, fn: (value: T, ...args: any[]) => T, ...args: any[]) {
   self[Value] = fn(self(), ...args)
   return Changes.add(self)
 }
 
-export function mutate<T>(self: Signal<T>, fn: (value: T, ...args: any[]) => any, ...args: any[]) {
+export function mutate<T>(self: MutableObservable<T>, fn: (value: T, ...args: any[]) => any, ...args: any[]) {
   fn(self(), ...args)
   return Changes.add(self)
 }
 
-export function emit<T>(self: Signal<T>) {
+export function emit<T>(self: Observable<T>) {
   const value = self()
   self[Listeners].forEach(fn => fn(value))
 }
 
-export function map<T, U>(self: Signal<T>, fn: (value: T) => U): Signal<U> {
+export function map<T, U>(self: Observable<T>, fn: (value: T) => U): Observable<U> {
   return derive(self, fn)
 }
 
-export function call<T, U>(self: Signal<T>, fn: (value: T, ...args: any[]) => U, ...args: any[]): U {
+export function call<T, U>(self: Observable<T>, fn: (value: T, ...args: any[]) => U, ...args: any[]): U {
   return fn(self(), ...args)
 }
 
 export const derive = <T, R, S>(
-  self: Signal<S> | Signal<S>[],
+  self: Observable<S> | Observable<S>[],
   // TODO: fix this type
   cb: Function extends (...args: infer P) => R
     ? (...args: P) => R
@@ -97,13 +101,13 @@ export const derive = <T, R, S>(
   return derived
 }
 
-function subscribe<T>(self: Signal<T>, cb: Callback<T>) {
+function subscribe<T>(self: Observable<T>, cb: Callback<T>) {
   self[Listeners].add(cb)
   return () => self[Listeners].delete(cb)
 }
 
 export function watch<T>(
-  self: Signal<T> | Signal<T>[],
+  self: Observable<T> | Observable<T>[],
   cb: Callback<T>
 ) {
   if (!Array.isArray(self)) return subscribe(self, cb)
@@ -113,7 +117,7 @@ export function watch<T>(
 }
 
 export function effect<T>(
-  $signal: Signal<T> | Signal<any>[],
+  $signal: Observable<T> | Observable<any>[],
   cb: Callback<T>
 ) {
   if (Array.isArray($signal)) {
@@ -147,32 +151,21 @@ export function batch<T>(fn: () => T): T {
   }
 }
 
-function toString<T extends { toString: () => string }>(self: Signal<T>) {
+function toString<T extends { toString: () => string }>(self: Observable<T>) {
   return self().toString()
 }
 
-export function enable<T>(self: T, ...fns: Function[]): T {
-  for (const fn of fns) {
-    self[fn.name] = fn.bind(null, self)
-  }
-  return self
-}
-
-export function signal<T>(value: T) {
-  const self = (() => self[Value]) as Signal<T>
+export function signal<T>(value: T, serialise = toString): MutableObservable<T> {
+  const self = (() => self[Value]) as MutableObservable<T>
 
   self[Value] = value
   self[Listeners] = new Set<Callback<T>>()
 
-  Object.defineProperty(self, 'value', {
-    get: self,
-    set: write.bind(null, self),
-  })
-
-  self.toString = toString.bind(null, self)
-  self.get = read.bind(null, self)
+  // @ts-ignore
+  self.toString = serialise.bind(null, self)
+  // @ts-ignore
   self.set = write.bind(null, self)
 
-  return enable(self, mutate, map, call, update, emit, subscribe, derive, effect)
+  return self
 }
 

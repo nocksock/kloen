@@ -1,7 +1,18 @@
-import { enable, watch, type Signal, signal as core, update } from "./kloen"
+import { enable, watch, signal, update, Readable } from "./kloen"
 
-export function when<T>(self: Signal<T>, predicate: (value: T) => boolean): Signal<T> {
-  const lastValue = core(self())
+export function filter<T>(self: Readable<T>, predicate: (value: T) => boolean): Readable<T> {
+  const lastValue = signal(self())
+  watch(self, newValue => {
+    if (predicate(newValue)) {
+      lastValue.set(newValue)
+    }
+  })
+  return lastValue
+}
+
+
+export function when<T>(self: Readable<T>, predicate: (value: T) => boolean): Readable<T> {
+  const lastValue = signal(self())
   watch(self, newValue => {
     if (predicate(newValue)) {
       lastValue.set(newValue)
@@ -12,11 +23,11 @@ export function when<T>(self: Signal<T>, predicate: (value: T) => boolean): Sign
 
 
 export function reduce<T, U>(
-  self: Signal<T>,
+  self: Readable<T>,
   reducer: (accumulator: U, current: T) => U,
   initialValue: U
-): Signal<U> {
-  const reduced = core(initialValue)
+): Readable<U> {
+  const reduced = signal(initialValue)
 
   watch(self, value => void update(reduced, acc => reducer(acc, value)))
 
@@ -25,10 +36,10 @@ export function reduce<T, U>(
 
 
 export function distinct<T>(
-  self: Signal<T>,
+  self: Readable<T>,
   compareFn: (a: T, b: T) => boolean = (a, b) => a === b
-): Signal<T> {
-  const distinct = core(self())
+): Readable<T> {
+  const distinct = signal(self())
   let lastValue = self()
 
   watch(self, value => {
@@ -41,8 +52,8 @@ export function distinct<T>(
   return distinct
 }
 
-export function ap<T, U>(self: Signal<T>, signalOfFn: Signal<(value: T) => U>): Signal<U> {
-  const result = core(signalOfFn()(self()))
+export function ap<T, U>(self: Readable<T>, signalOfFn: Readable<(value: T) => U>): Readable<U> {
+  const result = signal(signalOfFn()(self()))
 
   watch(signalOfFn, fn => result.set(fn(self())))
   watch(self, value => result.set(signalOfFn()(value)))
@@ -50,16 +61,12 @@ export function ap<T, U>(self: Signal<T>, signalOfFn: Signal<(value: T) => U>): 
   return result
 }
 
-export function flatMap<T, U>(self: Signal<T>, fn: (value: T) => Signal<U>): Signal<U> {
-  const result = core(fn(self())())
+export function flatMap<T, U>(self: Readable<T>, fn: (value: T) => Readable<U>): Readable<U> {
+  const result = signal(fn(self())())
   watch(self, value => {
     const innerSignal = fn(value)
     result.set(innerSignal())
     watch(innerSignal, innerValue => result.set(innerValue))
   })
   return result
-}
-
-export function signal<T>(value: T) {
-  return enable(core(value), flatMap, ap, when, reduce, distinct, ap)
 }

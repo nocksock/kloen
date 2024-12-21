@@ -32,6 +32,7 @@
     "gzip:check": "cat out/main.js| gzip -9 > out/main.js.gz  && ls -la out/"
   },
   "devDependencies": {
+    "@types/react": "^19.0.2",
     "jsdom": "^25.0.1",
     "react": "^19.0.0",
     "typescript": "^5.4.5",

@@ -9,7 +9,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "jsx": "react-jsx",
     "skipLibCheck": true
   },
-  "include": ["lib/**/*"]
+  "include": ["src/**/*"]
 }
