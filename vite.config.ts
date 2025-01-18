@@ -8,7 +8,8 @@ export default defineConfig({
       entry: {
         'kloen': resolve(__dirname, 'src/kloen.ts'),
         'kloen/extras': resolve(__dirname, 'src/extras.ts'),
-        'kloen/react': resolve(__dirname, 'src/react/index.ts')
+        'kloen/react': resolve(__dirname, 'src/react/index.ts'),
+        'kloen/lit': resolve(__dirname, 'src/lit/index.ts')
       },
       formats: ['es'],
       fileName: (format, entryName) => `${entryName}.js`
@@ -16,7 +17,6 @@ export default defineConfig({
     rollupOptions: {
       external: Object.keys(pkg.peerDependencies || {}),
       output: {
-
         preserveModules: false,
         entryFileNames: '[name].js'
       }
