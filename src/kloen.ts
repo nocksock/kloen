@@ -1,10 +1,9 @@
-const VALUES = new WeakMap();
+const VALUES = new WeakMap()
 const LISTENERS = new WeakMap()
 
 export type SignalFn<F> = F extends (self: any, ...args: infer P) => infer R
   ? (...args: P) => R
   : never
-
 
 export interface Observable<T> {
   (): T
@@ -15,7 +14,7 @@ export interface MutableObservable<V> extends Observable<V> {
   set(value: V): void
 }
 
-type Callback<T> = (value: T) => void
+export type Callback<T> = (value: T) => void
 
 const Changes = {
   queue: new Set<Observable<any>>(),
@@ -123,7 +122,7 @@ export function watch<T>(
 
 /**
  * Similar to watch, but is called immediately. This should be your preferred
- * way to create side effects. The callback is expected to return a cleanup 
+ * way to create side effects. The callback is expected to return a cleanup
  * function.
  */
 export function effect<T>(
@@ -180,3 +179,11 @@ export function signal<T>(value: T, serialise = toString): MutableObservable<T> 
   return self
 }
 
+type SignalRef = object | symbol | string | Function;
+const SIGNAL_REFS = new Map<SignalRef, MutableObservable<any>>()
+signal.for = <T>(key: SignalRef, defaultValue?: T) => {
+  if(!SIGNAL_REFS.has(key)) {
+    SIGNAL_REFS.set(key, signal(defaultValue))
+  }
+  return SIGNAL_REFS.get(key)
+}

@@ -12,7 +12,7 @@ describe('Signal', () => {
     expect(thing()).toEqual('123')
   })
 
-  it('can be observed via on', async () => {
+  it('can be observed via watch', async () => {
     const thing = signal('abc')
     const cb = vi.fn()
     const unsub = watch(thing, cb)
@@ -34,6 +34,12 @@ describe('Signal', () => {
     await vi.runAllTimersAsync()
     expect(cb).toHaveBeenCalledTimes(1)
     expect(cb).toHaveBeenCalledWith('123')
+  })
+
+  it('can be accessed via identifier', async () => {
+    const thing = signal.for('some-id', 10);
+    const other = signal.for('some-id')
+    expect(thing).toBe(other)
   })
 
   it('can be derived', async () => {
