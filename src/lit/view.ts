@@ -10,15 +10,15 @@ class SignalDirective<T = any> extends AsyncDirective {
     this.#unsubscribe = watch(signal, () => this.setValue(signal()));
   }
 
-  render(signal: Observable<T>) {
-    if (this.#signal !== signal) {
+  render($value: Observable<T>) {
+    if (this.#signal !== $value) {
       this.#unsubscribe?.();
-      this.#signal = signal
+      this.#signal = $value
       if (this.isConnected)  {
-        this.#subscribe(signal);
+        this.#subscribe($value);
       }
     }
-    return html`value: ${signal()}`;
+    return $value()
   }
 
   disconnected() { this.#unsubscribe?.(); }
