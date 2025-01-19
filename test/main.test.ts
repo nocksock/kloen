@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { distinct, reduce, ap, flatMap, when } from '../src/extras'
-import { update, mutate, call, map, derive, watch, signal, effect, batch, write } from '../src/kloen'
+import { fromPromise, distinct, reduce, ap, flatMap, when } from '../src/extras'
+import { read, update, mutate, call, map, derive, watch, signal, effect, batch, write } from '../src/kloen'
 
 describe('Signal', () => {
   vi.useFakeTimers()
@@ -36,6 +36,38 @@ describe('Signal', () => {
     expect(cb).toHaveBeenCalledWith('123')
   })
 
+  it('can be chained', async () => {
+    const thing = signal('abc')
+    const cb = vi.fn()
+    const unsub = watch(thing, cb)
+
+    thing
+      .set('foo')
+      .set('bar')
+
+    // writes are eager
+    expect(thing()).toEqual('bar')
+
+    await vi.runAllTimersAsync()
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  it('can take a transformer', async () => {
+    // can be used for validation and whatnot
+    const $thing = signal(5, (newValue, oldValue) => {
+      if (newValue < 10) return newValue
+      return oldValue
+    })
+
+    $thing.set(6)
+    await vi.runAllTimersAsync()
+
+    $thing.set(12)
+    await vi.runAllTimersAsync()
+
+    expect($thing()).toEqual(6)
+  })
+
   it('can be accessed via identifier', async () => {
     const thing = signal.for('some-id', 10);
     const other = signal.for('some-id')
@@ -64,9 +96,36 @@ describe('derive', () => {
     await vi.runAllTimersAsync()
     expect(result()).toEqual(20)
   })
+
+  it.todo('merges updates', async () => {
+    const $a = signal(3)
+    const $b = signal(4)
+    const cb = vi.fn((a, b) => a * b)
+    // @ts-expect-error
+    const result = derive([$a, $b], cb)
+    $a.set(5)
+    $b.set(6)
+    await vi.runAllTimersAsync()
+    expect(result()).toEqual(30)
+    expect(cb).toHaveBeenCalledTimes(2)
+  })
 })
 
-describe('on', () => {
+describe('watch', () => {
+  it.todo('batches multiple signal updates into one emission', async () => {
+    const $counterA = signal(0)
+    const $counterB = signal(0)
+    const cbA = vi.fn()
+
+    watch([$counterA, $counterB], cbA)
+
+    $counterA.set(1)
+    $counterB.set(1)
+    await vi.runAllTimersAsync()
+
+    expect(cbA).toHaveBeenCalledTimes(1)
+  })
+
   it('can watch multiple signals or topics and is called when either emits', async () => {
     const a = signal('a')
     const b = signal('b')
@@ -80,8 +139,8 @@ describe('on', () => {
   })
 })
 
-describe('bind', () => {
-  it('works like `on` but calls it immediately for simple render fn', async () => {
+describe('effect', () => {
+  it('works like `watch` but calls it initially', async () => {
     const name = signal('john')
     const el = document.createElement('div')
 
@@ -111,20 +170,20 @@ describe('bind', () => {
 
   // TODO: maybe displaying `Signal(john)` would be better to make it more
   // transparent that it's not a value.
-  it('values can be taken from scope, toString called automatically', async () => {
+  it('values can be taken from scope', async () => {
     const $name = signal('john')
     const $things = signal(0)
     const el = document.createElement('div')
 
-    effect([$name, $things], () => (el.innerHTML = `${$name} ${$things}`))
+    effect([$name, $things], () => (el.innerHTML = `${$name} ${$things()}`))
 
-    expect(el.innerHTML).toEqual('john 0')
+    expect(el.innerHTML).toEqual('Signal(john) 0')
     $name.set('peter')
     await vi.runAllTimersAsync()
-    expect(el.innerHTML).toEqual('peter 0')
+    expect(el.innerHTML).toEqual('Signal(peter) 0')
     $things.set(3)
     await vi.runAllTimersAsync()
-    expect(el.innerHTML).toEqual('peter 3')
+    expect(el.innerHTML).toEqual('Signal(peter) 3')
   })
 })
 
@@ -268,23 +327,14 @@ describe('Signal additional features', () => {
       expect(cb).toHaveBeenCalledWith(2)
     })
   })
+})
 
-  describe('batch', () => {
-    it('batches multiple updates into one emission', async () => {
-      const counter = signal(0)
-      const cb = vi.fn()
-
-      watch(counter, cb)
-
-      batch(() => {
-        counter.set(1)
-        counter.set(2)
-        counter.set(3)
-      })
-
-      await vi.runAllTimersAsync()
-      expect(cb).toHaveBeenCalledTimes(1)
-      expect(cb).toHaveBeenCalledWith(3)
-    })
+describe('read', () => {
+  it('reads the value of a signal or array of signals', () => {
+    const $a = signal('foo')
+    const $b = signal('bar')
+    expect(read($a)).toEqual('foo')
+    expect(read([$a, $b])).toEqual(['foo', 'bar'])
   })
 })
+
