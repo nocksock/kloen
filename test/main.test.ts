@@ -2,6 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { fromPromise, distinct, reduce, ap, flatMap, when } from '../src/extras'
 import { read, update, mutate, call, map, derive, watch, signal, effect, batch, write } from '../src/kloen'
 
+// TODO: clean up the tests
+//    - make description and it/test blocks somewhat consistent
+//    - remove obselete tests
+//    - use naming convention in all tests (prefix signals with $)
+
 describe('Signal', () => {
   vi.useFakeTimers()
 
@@ -317,6 +322,9 @@ describe('Signal additional features', () => {
 
       watch($distinct, cb)
 
+      // TODO: unsure if I actually want this behaviour 
+      //    this should rather be achieved by lazy evaluation
+      //    and batching for watchers
       value.set(1)
       value.set(1)
       value.set(2)

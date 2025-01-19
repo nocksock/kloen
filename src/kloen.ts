@@ -16,22 +16,6 @@ export interface MutableObservable<V> extends Observable<V> {
 
 export type Callback<T> = (value: T) => void
 
-// I need to keep in mind that callbacks might be called for different signals
-// so I can't batch these too generally. maybe that was my idea behind the
-// batch() function?
-//
-// const Callbacks = {
-//   queue: new WeakMap<Callback<any>, any>(),
-//   schedule(callback: Callback<any>, ...params: any) {
-//     this.queue.set(callback, params)
-//     queueMicrotask(Callbacks.call)
-//   },
-//   call(cb) {
-//     Callbacks.queue.entries.forEach(([cb, params]: any[]) => cb(...params) )
-//     Callbacks.queue.clear()
-//   }
-// }
-
 const Changes = {
   queue: new Set<Observable<any>>(),
   batchDepth: 0,
@@ -226,9 +210,7 @@ function toString<T extends { toString: () => string }>(self: Observable<T>) {
 const __TRANSFORMER = Symbol()
 
 const identity = <T>(v: T) => v
-/**
-* TODO: make second function a transformer function
-*/
+
 export function signal<T>(value?: T, transformer = identity): MutableObservable<T> {
   const self = (() => read(self)) as MutableObservable<T>
 
@@ -240,7 +222,6 @@ export function signal<T>(value?: T, transformer = identity): MutableObservable<
 
   // @ts-ignore
   self.toString = toString.bind(null, self)
-
   // @ts-ignore
   self.set = write.bind(null, self)
 
