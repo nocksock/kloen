@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
-import { signal, Signal } from '../src/kloen'
-import { when, filter } from '../src/extras'
+import { describe, expect, it, vi, test } from 'vitest'
+import { watch, signal, Signal } from '../src/kloen'
+import { when, filter, fromPromise, fromQuery, onReject, pipe } from '../src/extras'
 
 vi.useFakeTimers()
 
@@ -113,5 +113,69 @@ describe.skip('filter', () => {
     input.update(list => [...list, 5, 6])
     await vi.runAllTimersAsync()
     expect(even.get()).toEqual([2, 4, 6])
+  })
+})
+
+describe('fromPromise', () => {
+  test('wrapping a signal in a promise', async () => {
+    const {promise, resolve} = Promise.withResolvers()
+    const $promise = fromPromise(promise).fallback('fallback value')
+    const cb = vi.fn()
+
+    expect($promise()).toEqual('fallback value')
+    expect($promise.$status()).toEqual('pending')
+
+    watch($promise.$isPending, cb)
+
+    resolve('resolved value')
+
+    await vi.runAllTimersAsync()
+    expect($promise()).toEqual('resolved value')
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+
+  test('reject', async ()=> {
+    const {promise, reject} = Promise.withResolvers<string>()
+    const $promise = fromPromise<string, 'reason'>(promise).fallback('default')
+    expect($promise.$isRejected()).toEqual(false)
+    const cb = vi.fn()
+
+    onReject($promise, cb)
+    expect(cb).toHaveBeenCalledTimes(0)
+
+    reject('reason')
+    await vi.runAllTimersAsync()
+    expect($promise.$reason()).toEqual('reason')
+    expect($promise.$isRejected()).toEqual(true)
+    expect(cb).toHaveBeenCalledTimes(1)
+    expect(cb).toHaveBeenCalledWith('reason')
+  })
+})
+
+describe.skip('fromQuery', () => {
+  it('takes a function that returns a promise', async () => {
+    const {promise, resolve} = Promise.withResolvers()
+    const $promise = fromQuery(() => promise)
+
+    resolve('resolved value')
+    await vi.runAllTimersAsync()
+
+    expect($promise()).toEqual('resolved value')
+  })
+})
+
+describe('pipe', () => {
+  it('takes a function that returns a promise', async () => {
+    const $value = signal(678)
+    const half = v => v / 2
+    const mirror = v => String(v) + ":" + String(v).split('').toReversed().join('')
+    const $piped = pipe($value, half, mirror)
+
+    expect($piped()).toEqual('339:933')
+
+    $value.set(456)
+    await vi.runAllTimersAsync()
+
+    expect($piped()).toEqual('228:822')
   })
 })
