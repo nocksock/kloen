@@ -1,3 +1,12 @@
+# TODO: lazy eval via tracking
+
+emit value only when subscribers present
+execute update/mutate on read or when subscribers present
+
+```
+$signal.isWatched 
+```
+
 # TODO: WebComponent
 
 ```js

@@ -1,14 +1,21 @@
+/**
+ * @module kloen
+ *
+ * Root explanations
+ */
+
 const VALUES = new WeakMap()
 const LISTENERS = new WeakMap()
+const signalSymbol = Symbol()
+const signalMarker = Symbol()
 
-export type SignalFn<F> = F extends (self: any, ...args: infer P) => infer R
-  ? (...args: P) => R
-  : never
-
+declare const observer: unique symbol
 export interface Observable<T> {
-  (): T
-  emit(): SignalFn<typeof emit<T>>
+  (): T,
+  [signalMarker]: typeof signalSymbol
 }
+
+export type ObservedValue<S> = S extends Observable<infer V> ? V : never;
 
 export interface MutableObservable<V> extends Observable<V> {
   set(value: V): MutableObservable<V>
@@ -38,7 +45,7 @@ const Changes = {
  * read the value of a signal
  */
 export function read<T>(self: Observable<T> | Observable<T>[]) {
-  if(Array.isArray(self)) return self.map(invoke)
+  if (Array.isArray(self)) return self.map(invoke)
   return VALUES.get(self)
 }
 
@@ -51,7 +58,7 @@ export function read<T>(self: Observable<T> | Observable<T>[]) {
  */
 export function write<T>(self: MutableObservable<T>, value: T) {
   // @ts-ignore
-  VALUES.set(self, self[__TRANSFORMER](value, self()))
+  VALUES.set(self, value)
   return Changes.add(self)
 }
 
@@ -211,7 +218,22 @@ const __TRANSFORMER = Symbol()
 
 const identity = <T>(v: T) => v
 
-export function signal<T>(value?: T, transformer = identity): MutableObservable<T> {
+/**
+ * Create a new Signal
+ *
+ * ```js
+ * // basic usage
+ * const $counter = Signal(0)
+ * $counter.set(1)
+ * $counter() // => 1
+ * update($counter(), v => v + 1) // update value using a pure function
+ * $counter() // => 2
+ * ```
+ *
+ * @alias Signal.of
+ */
+// TODO: consider renaming this to Signal to more closely match Symbol API
+export function signal<T>(value?: T): MutableObservable<T> {
   const self = (() => read(self)) as MutableObservable<T>
 
   // @ts-ignore
@@ -230,11 +252,14 @@ export function signal<T>(value?: T, transformer = identity): MutableObservable<
 
 type SignalRef = object | symbol | string | Function;
 const SIGNAL_REFS = new Map<SignalRef, MutableObservable<any>>()
-signal.for = <T>(key: SignalRef, defaultValue?: T): MutableObservable<T> => {
-  if(!SIGNAL_REFS.has(key)) {
+signal.for = <T>(key: SignalRef, defaultValue?: T, transformer = identity): MutableObservable<T> => {
+  if (!SIGNAL_REFS.has(key)) {
     SIGNAL_REFS.set(key, signal(defaultValue))
   }
   return SIGNAL_REFS.get(key)!
 }
 
 const invoke = <R>(f: () => R) => f()
+
+export const isSignal = (self: any): self is Observable<unknown> =>
+  typeof self === "function" && self[signalMarker] === signalSymbol

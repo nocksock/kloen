@@ -1,36 +1,12 @@
 import { describe, expect, it, vi, test } from 'vitest'
-import { watch, signal, Signal } from '../src/kloen'
-import { when, filter, fromPromise, fromQuery, onReject, pipe } from '../src/extras'
+import { update, mutate, watch, signal, Signal } from '../src/kloen'
+import { when, filter, pipe, } from '../src/extras'
+import { select } from '../src/extras/select'
+import { onReject, onResolve, fromPromise} from '../src/extras/async'
 
 vi.useFakeTimers()
 
-describe.skip('when([[signal, 10], [signal, 20]] cb)', () => {
-  it('triggers when things match', async () => {
-    const a = signal(0)
-    const b = signal(0)
-    const cb = vi.fn()
-
-    when(
-      [
-        [a, 10],
-        [b, 20],
-      ],
-      cb
-    )
-    await vi.runAllTimersAsync()
-    expect(cb).not.toHaveBeenCalled()
-
-    a.value = 10
-    await vi.runAllTimersAsync()
-    expect(cb).not.toHaveBeenCalled()
-
-    b.value = 20
-    await vi.runAllTimersAsync()
-    expect(cb).toHaveBeenCalled()
-  })
-})
-
-describe.skip('throttle', () => {
+describe.todo('throttle', () => {
   it('limits updates to specified interval', async () => {
     const value = signal(0)
     const throttled = throttle(value, 100)
@@ -177,5 +153,45 @@ describe('pipe', () => {
     await vi.runAllTimersAsync()
 
     expect($piped()).toEqual('228:822')
+  })
+})
+
+
+
+describe('select', () => {
+  it('creates a derivative from an object property', async () => {
+    const $value = signal({
+      name: 'something',
+    })
+    const $name = select($value, 'name')
+
+    expect($name()).toEqual('something')
+
+    mutate($value, v => v.name = 'something else')
+
+    await vi.runAllTimersAsync()
+    expect($name()).toEqual('something else')
+  })
+
+  it.todo('can handle nested props', async () => {
+    const $value = signal({
+      name: 'something',
+      book: {
+        title: 'foobar'
+      }
+    })
+    const $name = select($value, 'name')
+    const $title = select($value, 'book.title')
+
+    expect($name()).toEqual('something')
+    // TODO:
+    expect($title()).toEqual('foobar')
+
+    mutate($value, v => v.name = 'something else')
+    mutate($value, v => v.book.title = 'new title')
+
+    await vi.runAllTimersAsync()
+    expect($name()).toEqual('something else')
+    expect($title()).toEqual('new title')
   })
 })

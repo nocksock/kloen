@@ -17,6 +17,18 @@ describe('Signal', () => {
     expect(thing()).toEqual('123')
   })
 
+  it('be created similar to String, Array etc in JS', () => {
+    const $a = signal('abc')
+    // @ts-expect-error - this works, but TS hates it
+    const $b = new signal('abc')
+    expect($a()).toEqual('abc')
+    expect($b()).toEqual('abc')
+    write($a, '123')
+    write($b, '123')
+    expect($a()).toEqual('123')
+    expect($b()).toEqual('123')
+  })
+
   it('can be observed via watch', async () => {
     const thing = signal('abc')
     const cb = vi.fn()

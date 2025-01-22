@@ -1,5 +1,6 @@
-import { describe, test, vi,expect } from "vitest"
-import { fromPromise, distinct, reduce, ap, flatMap, when } from '../src/extras'
+import { describe, test, vi, expect } from "vitest"
+import { distinct, reduce, ap, flatMap, when } from '../src/extras'
+import { fromPromise } from '../src/extras/async'
 import { read, update, mutate, call, map, derive, watch, signal, effect, batch, write } from '../src/kloen'
 
 const createTodo = (title: string, description: null | string = null) => ({
@@ -33,7 +34,7 @@ describe('todolist', () => {
 
   test('', async () => {
     const $asyncTodos = fromPromise(() => todos.listAll()).fallback([])
-    const $$todos = derive($asyncTodos, list => 
+    const $$todos = derive($asyncTodos, list =>
       list.map(item => signal.for(`todo:${item.id}`, item))
     )
 
