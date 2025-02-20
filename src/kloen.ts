@@ -236,9 +236,6 @@ const identity = <T>(v: T) => v
 export function signal<T>(value?: T): MutableObservable<T> {
   const self = (() => read(self)) as MutableObservable<T>
 
-  // @ts-ignore
-  self[__TRANSFORMER] = transformer
-
   VALUES.set(self, value)
   LISTENERS.set(self, new Set<Callback<T>>())
 
