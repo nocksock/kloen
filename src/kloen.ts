@@ -101,19 +101,21 @@ export function call<T, U>(self: Observable<T>, fn: (value: T, ...args: any[]) =
   return fn(self(), ...args)
 }
 
-export const derive = <R>(                                                                                                                                                                                                                               
-   computation: () => R                                                                                                                                                                                                                                   
- ): Observable<R> => {                                                                                                                                                                                                                                    
-   // Calculate initial value                                                                                                                                                                                                                             
-   const initialValue = computation();                                                                                                                                                                                                                    
-   const derived = signal<R>(initialValue);                                                                                                                                                                                                               
-                                                                                                                                                                                                                                                          
-   // Set up the effect to keep it updated                                                                                                                                                                                                                
-   effect(() => {                                                                                                                                                                                                                                         
-     derived.set(computation());                                                                                                                                                                                                                          
-   });                                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                          
-   return derived;  
+export const derive = <R>(
+  computation: () => R
+): Observable<R> => {
+  const derived = signal<R>(computation());
+  
+  // Set up the effect to keep it updated
+  effect(() => {
+    const newValue = computation();
+    if (newValue !== derived()) {
+      derived.set(newValue);
+    }
+  });
+
+  // Make derived signal read-only
+  return (() => derived()) as Observable<R>;
 }
 const CALLBACK_QUEUE = new Set();
 function subscribe<T>(self: Observable<T>, cb: Callback<T>) {
