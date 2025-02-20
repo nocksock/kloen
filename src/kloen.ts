@@ -4,10 +4,14 @@
  * Root explanations
  */
 
-const VALUES = new WeakMap()
-const LISTENERS = new WeakMap()
-const signalSymbol = Symbol()
-const signalMarker = Symbol()
+const VALUES = new WeakMap();
+const LISTENERS = new WeakMap();
+const signalSymbol = Symbol();
+const signalMarker = Symbol();
+
+// Tracking context for auto-dependency collection
+let currentEffect: (() => void) | null = null;
+const effectDependencies = new WeakMap<() => void, Set<Observable<any>>>();
 
 declare const observer: unique symbol
 export interface Observable<T> {
@@ -45,8 +49,16 @@ const Changes = {
  * read the value of a signal
  */
 export function read<T>(self: Observable<T> | Observable<T>[]) {
-  if (Array.isArray(self)) return self.map(invoke)
-  return VALUES.get(self)
+  if (Array.isArray(self)) return self.map(invoke);
+  
+  // Auto-track dependencies when there's an active effect
+  if (currentEffect) {
+    const deps = effectDependencies.get(currentEffect) || new Set();
+    deps.add(self);
+    effectDependencies.set(currentEffect, deps);
+  }
+  
+  return VALUES.get(self);
 }
 
 /**
@@ -85,39 +97,24 @@ export function emit<T>(self: Observable<T>) {
   LISTENERS.get(self).forEach((fn: Callback<T>) => fn(value))
 }
 
-export function map<T, U>(self: Observable<T>, fn: (value: T) => U): Observable<U> {
-  return derive(self, fn)
-}
-
 export function call<T, U>(self: Observable<T>, fn: (value: T, ...args: any[]) => U, ...args: any[]): U {
   return fn(self(), ...args)
 }
 
-export const derive = <T, R>(
-  self: Observable<T> | Observable<T>[],
-  // TODO: fix this type
-  cb: Function extends (...args: infer P) => R
-    ? (...args: P) => R
-    : (arg: T) => R
-): Observable<R> => {
-  // TODO: there is implementation overlap with effect, refactor so that one of
-  //  them uses the other
-  if (Array.isArray(self)) {
-    const callback = () => (cb as any)(...self.map(invoke))
-    const initialValue = callback()
-    const derived = signal(initialValue)
-    self.forEach($ => subscribe($, () => derived.set(callback())))
-    return derived
-  }
-
-  const initialValue = cb(self())
-  const derived = signal(initialValue)
-
-  subscribe(self, value => derived.set(cb(value)))
-
-  return derived
+export const derive = <R>(                                                                                                                                                                                                                               
+   computation: () => R                                                                                                                                                                                                                                   
+ ): Observable<R> => {                                                                                                                                                                                                                                    
+   // Calculate initial value                                                                                                                                                                                                                             
+   const initialValue = computation();                                                                                                                                                                                                                    
+   const derived = signal<R>(initialValue);                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                          
+   // Set up the effect to keep it updated                                                                                                                                                                                                                
+   effect(() => {                                                                                                                                                                                                                                         
+     derived.set(computation());                                                                                                                                                                                                                          
+   });                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                          
+   return derived;  
 }
-
 const CALLBACK_QUEUE = new Set();
 function subscribe<T>(self: Observable<T>, cb: Callback<T>) {
   LISTENERS.get(self).add(cb)
@@ -167,18 +164,35 @@ export function watch<T>(
  * way to create side effects. The callback is expected to return a cleanup
  * function.
  */
-export function effect<T>(
-  $signal: Observable<T> | Observable<any>[],
-  cb: Callback<T>
-) {
-  if (Array.isArray($signal)) {
-    const callback = () => (cb as any)(...$signal.map(invoke))
-    callback()
-    return watch($signal, callback)
-  }
+export function effect<T>(fn: () => void) {
+  const runEffect = () => {
+    // Clear old dependencies
+    effectDependencies.delete(runEffect);
+    
+    // Set up tracking
+    const parent = currentEffect;
+    currentEffect = runEffect;
+    
+    try {
+      fn();
+    } finally {
+      currentEffect = parent;
+    }
+  };
 
-  cb($signal())
-  return watch($signal, cb)
+  // Initial run to collect dependencies
+  runEffect();
+
+  // Set up subscriptions for all tracked dependencies
+  const deps = effectDependencies.get(runEffect);
+  if (deps) {
+    const cleanup = Array.from(deps).map(dep => 
+      subscribe(dep, runEffect)
+    );
+    return () => cleanup.forEach(invoke);
+  }
+  
+  return () => {};
 }
 
 /**
@@ -234,7 +248,10 @@ const identity = <T>(v: T) => v
  */
 // TODO: consider renaming this to Signal to more closely match Symbol API
 export function signal<T>(value?: T): MutableObservable<T> {
-  const self = (() => read(self)) as MutableObservable<T>
+  const self = ((value?: T) => {
+    if (value !== undefined) return write(self, value)
+    return read(self)
+  }) as MutableObservable<T>
 
   VALUES.set(self, value)
   LISTENERS.set(self, new Set<Callback<T>>())
