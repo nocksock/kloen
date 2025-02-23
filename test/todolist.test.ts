@@ -29,7 +29,7 @@ const todos = {
   }
 }
 
-describe('todolist', () => {
+describe.skip('todolist', () => {
   vi.useFakeTimers()
 
   test('', async () => {

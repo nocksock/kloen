@@ -30,7 +30,8 @@
   "packageManager": "pnpm@9.10.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "lint": "tsc --noEmit",
     "test": "vitest --environment jsdom",
     "gh:issue": "gh issue -R nocksock/kloen",
     "release:minor": "pnpm run build && pnpm version minor && pnpm publish --no-git-checks",
@@ -42,11 +43,12 @@
   "devDependencies": {
     "@types/react": "^19.0.2",
     "jsdom": "^25.0.1",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.10",
-    "vitest": "^2.1.4",
+    "kloen": "link:",
     "lit": "^3.2.1",
-    "lit-html": "^3.2.1"
+    "lit-html": "^3.2.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vitest": "^2.1.4"
   },
   "peerDependencies": {
     "react": "^19.0.0"

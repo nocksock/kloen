@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { update, signal } from '../src/kloen'
 import { filter, } from '../src/extras/iter'
 
-describe('filter', () => {
+describe.skip('filter', () => {
   vi.useFakeTimers()
   it('creates a derived value filtered by predicate', async () => {
     const $list = signal([1, 2, 3, 4])

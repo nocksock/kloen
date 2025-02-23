@@ -13,5 +13,6 @@
     "jsx": "react-jsx",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "external": ["react", "react-dom"]
 }

@@ -1,4 +1,6 @@
-# TODO: lazy eval via tracking
+## TODO: indexedDB wrapper
+
+## TODO: lazy eval via tracking
 
 emit value only when subscribers present
 execute update/mutate on read or when subscribers present
@@ -7,7 +9,7 @@ execute update/mutate on read or when subscribers present
 $signal.isWatched 
 ```
 
-# TODO: WebComponent
+## TODO: WebComponent
 
 ```js
 const $value = signal.for('signal-id');

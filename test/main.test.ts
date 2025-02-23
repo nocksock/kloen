@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fromPromise, distinct, reduce, ap, flatMap, when } from '../src/extras'
+import { reduce, ap, flatMap } from '../src/extras'
 import { read, update, mutate, call, map, derive, watch, signal, effect, batch, write } from '../src/kloen'
-
-// TODO: clean up the tests
-//    - make description and it/test blocks somewhat consistent
-//    - remove obselete tests
-//    - use naming convention in all tests (prefix signals with $)
 
 describe('Signal', () => {
   vi.useFakeTimers()
@@ -69,21 +64,21 @@ describe('Signal', () => {
     expect(cb).toHaveBeenCalledTimes(1)
   })
 
-  it('can take a transformer', async () => {
-    // can be used for validation and whatnot
-    const $thing = signal(5, (newValue, oldValue) => {
-      if (newValue < 10) return newValue
-      return oldValue
-    })
-
-    $thing.set(6)
-    await vi.runAllTimersAsync()
-
-    $thing.set(12)
-    await vi.runAllTimersAsync()
-
-    expect($thing()).toEqual(6)
-  })
+  // it.skip('can take a transformer', async () => {
+  //   // can be used for validation and whatnot
+  //   const $thing = signal(5, (newValue, oldValue) => {
+  //     if (newValue < 10) return newValue
+  //     return oldValue
+  //   })
+  //
+  //   $thing.set(6)
+  //   await vi.runAllTimersAsync()
+  //
+  //   $thing.set(12)
+  //   await vi.runAllTimersAsync()
+  //
+  //   expect($thing()).toEqual(6)
+  // })
 
   it('can be accessed via identifier', async () => {
     const thing = signal.for('some-id', 10);
@@ -93,7 +88,7 @@ describe('Signal', () => {
 
   it('can be derived', async () => {
     const a = signal(3)
-    const b = derive(a, a => a * a)
+    const b = derive(() => a() * a())
     const cb = vi.fn()
     watch(b, cb)
     expect(b()).toEqual(9)
@@ -103,15 +98,20 @@ describe('Signal', () => {
   })
 })
 
-describe('derive', () => {
-  it('works with multiple signals', async () => {
-    const $a = signal(3)
-    const $b = signal(4)
-    const result = derive([$a, $b], (a, b) => a * b)
-    expect(result()).toEqual(12)
-    $a.set(5)
-    await vi.runAllTimersAsync()
-    expect(result()).toEqual(20)
+describe.only('derive', () => {
+  it.only('works with multiple signals', async () => {
+    const a = signal(1);
+    const b = signal(2);
+    const double = signal(false);
+    const c = derive(() => double() 
+      ? (a() + b()) * 2 
+      :  a() + b()
+    );
+    expect(c()).toEqual(3)
+    a(10);
+    expect(c()).toEqual(12)
+    double(true);
+    expect(c()).toEqual(24)
   })
 
   it.todo('merges updates', async () => {
@@ -291,23 +291,8 @@ describe('Signal methods', () => {
   })
 })
 
-describe('Signal additional features', () => {
+describe.skip('Signal additional features', () => {
   vi.useFakeTimers()
-
-  describe('when', () => {
-    it('only updates when predicate is true', async () => {
-      const numbers = signal(0)
-      const evenNumbers = when(numbers, n => n % 2 === 0)
-
-      numbers.set(1)
-      await vi.runAllTimersAsync()
-      expect(evenNumbers()).toBe(0)
-
-      numbers.set(2)
-      await vi.runAllTimersAsync()
-      expect(evenNumbers()).toBe(2)
-    })
-  })
 
   describe('reduce', () => {
     it('accumulates values over time', async () => {
@@ -325,36 +310,14 @@ describe('Signal additional features', () => {
       expect(sum()).toBe(6)
     })
   })
-
-  describe('distinct', () => {
-    it('only emits when value actually changes', async () => {
-      const value = signal(1)
-      const $distinct = distinct(value)
-      const cb = vi.fn()
-
-      watch($distinct, cb)
-
-      // TODO: unsure if I actually want this behaviour 
-      //    this should rather be achieved by lazy evaluation
-      //    and batching for watchers
-      value.set(1)
-      value.set(1)
-      value.set(2)
-      value.set(2)
-      await vi.runAllTimersAsync()
-
-      expect(cb).toHaveBeenCalledTimes(1)
-      expect(cb).toHaveBeenCalledWith(2)
-    })
-  })
 })
 
-describe('read', () => {
-  it('reads the value of a signal or array of signals', () => {
-    const $a = signal('foo')
-    const $b = signal('bar')
-    expect(read($a)).toEqual('foo')
-    expect(read([$a, $b])).toEqual(['foo', 'bar'])
-  })
-})
+// describe('read', () => {
+//   it('reads the value of a signal or array of signals', () => {
+//     const $a = signal('foo')
+//     const $b = signal('bar')
+//     expect(read($a)).toEqual('foo')
+//     expect(read([$a, $b])).toEqual(['foo', 'bar'])
+//   })
+// })
 

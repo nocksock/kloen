@@ -4,6 +4,7 @@ import pkg from "./package.json"
 
 export default defineConfig({
   build: {
+    minify: false,
     lib: {
       entry: {
         'kloen': resolve(__dirname, 'src/kloen.ts'),
