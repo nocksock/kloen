@@ -7,9 +7,8 @@ export default defineConfig({
     minify: false,
     lib: {
       entry: {
-        'kloen': resolve(__dirname, 'src/kloen.ts'),
+        'kloen': resolve(__dirname, 'src/index.ts'),
         'kloen/extras': resolve(__dirname, 'src/extras.ts'),
-        'kloen/react': resolve(__dirname, 'src/react/index.ts'),
         'kloen/lit': resolve(__dirname, 'src/lit/index.ts')
       },
       formats: ['es'],
