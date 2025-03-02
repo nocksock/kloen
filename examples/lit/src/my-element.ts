@@ -17,7 +17,6 @@ export class SignalValue extends LitElement {
   constructor() {
     super()
     effect(() => {
-      console.log('value', signalValue())
       this.render()
       this.requestUpdate()
     })
