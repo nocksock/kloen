@@ -32,10 +32,14 @@ export function endBatch(): void {
   }
 }
 
-export interface WriteableSignal<T> {
+export interface WriteableSignal<T> extends ReadableSignal<T> {
   (): T
   (value: T): void
   $: Signal<T>
+}
+
+export interface ReadableSignal<T> {
+  (): T
 }
 
 export function signal<T>(): WriteableSignal<T | undefined>
@@ -52,7 +56,8 @@ export function signal<T>(oldValue?: T): WriteableSignal<T | undefined> {
   return api
 }
 
-export class Signal<T = any> implements Dependency {
+// TODO: reconsider class based approach over function based
+class Signal<T = any> implements Dependency {
   // Dependency fields
   subs: Link | undefined = undefined
   subsTail: Link | undefined = undefined
@@ -203,10 +208,14 @@ const SIGNAL_REFS = new Map<SignalRef, WriteableSignal<any>>()
  * NOTE: This will create a global signal reference, so it won't be garbage
  * collected automatically. Use `clearSignalRefs` to clear all signal, or
  * `signal.clear` to clear a specific signal.
+ *
+ * TODO: when a non-string is used as a key, it should be stored in a WeakMap
  */
 signal.for = <T>(key: SignalRef, defaultValue?: T): WriteableSignal<T> => {
   if (!SIGNAL_REFS.has(key)) {
-    SIGNAL_REFS.set(key, signal(defaultValue))
+    const value =
+      typeof defaultValue === 'function' ? defaultValue() : defaultValue
+    SIGNAL_REFS.set(key, signal(value))
   }
   return SIGNAL_REFS.get(key)!
 }

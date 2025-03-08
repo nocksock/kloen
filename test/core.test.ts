@@ -26,6 +26,18 @@ describe('Signal References', () => {
       const other = signal.for('some-id')
       expect(thing).toBe(other)
     })
+
+    it('initializes the signal with a default value', () => {
+      const thing = signal.for('some-id', 10)
+      expect(thing()).toBe(10)
+    })
+
+    it('takes a setup function to initialize the signal unless it existed', () => {
+      const thing = signal.for('some-id', () => 10)
+      expect(thing()).toBe(10)
+      const other = signal.for('some-id', () => 20)
+      expect(other()).toBe(10)
+    })
   })
 
   describe('exists', () => {
@@ -75,6 +87,7 @@ describe('Signal References', () => {
       expect(thing()).toBe(10)
     })
   })
+
 })
 
 describe('Computed', () => {
