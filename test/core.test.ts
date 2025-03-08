@@ -15,6 +15,11 @@ describe('Signal', () => {
     expect(thing).toBe(other)
   })
 
+  it('returns the value when set', () => {
+    const thing = signal('abc')
+    expect(thing('123')).toEqual('123')
+  })
+
   describe('for', () => {
     it('creates a signal with a unique identifier', () => {
       const thing = signal.for('some-id', 10)

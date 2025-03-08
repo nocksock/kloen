@@ -46,7 +46,7 @@ export function signal<T>(oldValue?: T): WriteableSignal<T | undefined> {
     if (value === undefined) {
       return self.get()
     }
-    self.set(value)
+    return self.set(value)
   }
   api.$ = self
   return api
@@ -79,7 +79,7 @@ export class Signal<T = any> implements Dependency {
     }
   }
 
-  set(value: T): void {
+  set(value: T): T {
     if (this.currentValue !== value) {
       this.currentValue = value
       const subs = this.subs
@@ -90,6 +90,7 @@ export class Signal<T = any> implements Dependency {
         }
       }
     }
+    return value
   }
 }
 
