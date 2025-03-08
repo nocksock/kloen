@@ -147,12 +147,6 @@ export class Computed<T = any> implements Subscriber, Dependency {
   }
 }
 
-export function effect<T>(fn: () => T): () => void {
-  const e = new Effect(fn)
-  e.run()
-  return () => e.stop()
-}
-
 export class Effect<T = any> implements Subscriber {
   // Subscriber fields
   deps: Link | undefined = undefined
@@ -192,11 +186,43 @@ export class Effect<T = any> implements Subscriber {
   }
 }
 
+export function effect<T>(fn: () => T): () => void {
+  const e = new Effect(fn)
+  e.run()
+  return () => e.stop()
+}
+
 type SignalRef = object | symbol | string | Function
 const SIGNAL_REFS = new Map<SignalRef, WriteableSignal<any>>()
+
+/**
+ * Creates a signal with a unique identifier and returns the same on subsequent
+ * calls. If a default value is provided, it will be used to initialize the
+ * signal.
+ *
+ * NOTE: This will create a global signal reference, so it won't be garbage
+ * collected automatically. Use `clearSignalRefs` to clear all signal, or
+ * `signal.clear` to clear a specific signal.
+ */
 signal.for = <T>(key: SignalRef, defaultValue?: T): WriteableSignal<T> => {
   if (!SIGNAL_REFS.has(key)) {
     SIGNAL_REFS.set(key, signal(defaultValue))
   }
   return SIGNAL_REFS.get(key)!
 }
+
+/**
+ * Returns true if a signal reference exists for the given identifier.
+ */
+signal.exists = (key: SignalRef): boolean => SIGNAL_REFS.has(key)
+
+/**
+ * Clears a specific signal reference created by `signal.for` so it can be
+ * garbage collected.
+ */
+signal.clear = (key: SignalRef) => SIGNAL_REFS.delete(key)
+
+/**
+ * Clears all registered signal references created by `signal.for`.
+ */
+export const clearSignalRefs = () => SIGNAL_REFS.clear()
