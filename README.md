@@ -3,132 +3,74 @@
 > Klön, der | kløːn |
 >   (North German) leisurely, informal conversation or chat.
 
-Library/Framework agnostic signals
-
-> [!WARNING]
-> Work in progress! Breaking changes will happen unannounced and API is still 
-> to be considered unstable.
-
 ## Usage / Quick Start
 
+Kloen is using [alien-signals]'s `createReactiveSystem` under the hood. The
+surface API is *mostly* the same as in the original, with some differences
+in order to be able to provide some utility functions and enable a few usage
+patterns.
+
+
 ```js
-import { signal, update, derive } from "https://esm.sh/kloen"
+import { signal, update, computed, mutate } from "https://esm.sh/kloen"
 
-const $counter = signal(0) // use $ prefix to denote that variable contains a signal
-const $double = derive($counter, v => v * 2)
-const add10 = update($counter, v => v + 10)
+const $counter = signal(0) // I like using $ prefix to denote that variable contains a signal
+const $double = computed(v => $counter() * 2)
 
-// watches for a *change*, ie is not called initially
-watch($counter, v => {
-    console.log(`counter value:`, v)
-})
+$counter(4) // setter
 
-$counter.set(4)
-add10()
+// update signals using pure transform functions using the `update` utility
+const add10 = v => v + 10
+update($counter, add10)
 
 $counter() // 14
 $double() // 28
 
-// like `watch`, but is called initially
-effect($counter, v => {
-    console.log(`counter value:`, v)
-})
+// kloen's effect returns an unsubscribe for cleanups
+const unsub = effect(() => console.log(`counter value:`, $counter()))
 
-// watch, effect and derive can observe multipe signals, makes it easy to 
-// merge mutliple signals into a single one
-const $person = derive([$firstName, $lastName], (firstName, lastName) => ({
-    firstName,
-    lastName
-}))
+const $someSet = signal(new Set())
+const $size = computed(() => someSet.size)
 
+$size() // 0
+mutate($someSet, s => s.add('item'))
+$size() // 1
 
+// Signals can be named and receive a default value if not yet existing,
+// making it easy to share signals between places where passing it down is
+// has too much friction
+$a = signal.for('counter-a', 0)
+$b = signal.for('counter-b', 0)
+
+$a === signal.for('counter-a') // true
 ```
 
-## Features
-
-- 0 dependencies
-- small: 
-    - core 0.83kb (gzip)
-    - including all extras: ~1kb (gzip)
-- highly functional and composable
-- library/framework agnostic
-- small api surface area
-- lazy evaluation
-- fully typed
-- simple, strong and flexible primitives
-
-## Why another one?
-
-Because I wanted to implement it and have a specific API.
-Sortof a lovechild between Jotai and Ramda.
-
-## Goals and rules
-
-- Keep upcoming TC39 in mind (Destructor, Immutables, Signals etc)
-- Achieve "complete", ie: core will only need minor updates after 1.0, if any
-    - core updates mostly to make
-    - most updates should then only occur for the extras
-- Keep implementation simple
-    - favor implementation simplicity over performance
-- Keep surface area as small as possible, favor strong and composable primitives
-- Provide primitives to integrate easily for major frameworks/libraries
-
-## Using it in react
-
-It's fairly simple to hook it into eg. react. 
+## Usage in Web-Components
 
 ```js
-export const useSignal = $value => {
-  const [value, setValue] = useState($value())
-  useEffect(() => watch($value, setValue), [])
-  return [value, write.bind(null, $value)]
-}
-```
+import { render, html } from "https://esm.sh/lit-html"
+import { signal, update } from "https://esm.sh/kloen"
 
-This hook is exported from `kloen/react`. 
-So you can import it via `import { useSignal } from 'kloen/react'`
+const $counter = signal(0)
 
-## Using it with Web-Components
+setInterval(() => {
+    update($counter, v => v + 1)
+}, 500)
 
-```js
-// Signals can be named and receive a default value if not yet existing 
-signal.for('counter-a', 0)
-signal.for('counter-b', 0)
+customElements.define('counter-value', class HTMLElement {
+    #view = () => html`
+        <p>The value is ${$counter()}</p>
+    `;
 
-// can be used like
-// <signal-value for="counter-a"></signal-value>
-customElements.define('signal-value', class HTMLElement {
-    #unsubscribe;
     constructor() {
         super();
-    }
-
-    connectedCallback()    { this.#subscribe() }
-    disconnectedCallback() { this.#unsubscribe?.() }
-
-    #subscribe() {
-        this.#unsubscribe = effect(signal.for(this.getAttribute('for'), 0), this.render.bind(this))
+        effect(this.render.bind(this))
     }
 
     render() {
-        this.innerHTML = `
-            ${$counter()}
-        `
+        render(this.#view, this)
     }
 })
 ```
 
-## Should you use this?
-
-While the API is already *somewhat* stable at this point, I want to build a few more complex projects using this before giving it the 1.0 stamp.
-`kloen` isn't slow by any means, but performance isn't its primary concern.
-So if performance is *your* primary concern, you should probably rather look at [#alternatives].
-
-## Alternatives
-
-- React: Jotai, Recoil
-- Preact-Signals
-- Mobx
-
-Or the builtin signals/observables in solid/vue/svelte/angular.
-
+[alien-signals]: https://github.com/stackblitz/alien-signals

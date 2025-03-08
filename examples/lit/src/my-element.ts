@@ -1,62 +1,28 @@
 import { LitElement, html } from 'lit'
-import { property, customElement } from 'lit/decorators.js'
-import { derive, signal, update } from '../../../src/kloen'
-import { view } from '../../../src/lit'
+import { customElement } from 'lit/decorators.js'
+import { effect, signal } from '../../../src'
 
-const $value = signal(0);
-const $crossTotal = derive($value, v =>
-  String(v).split('').reduce((acc, cv) => acc + Number(cv), 0)
-)
+const signalValue = signal(0)
+setInterval(() => {
+  console.log('inside value', signalValue())
+  signalValue(signalValue() + 1)
+}, 500)
 
-@customElement('view-value')
-class ViewValue extends LitElement {
-  render() {
-    return html`
-      <p>the current value is:</p>
-      <output>
-        ${view($value)}
-      </output>
-    `
+effect(() => {
+  console.log('effect value', signalValue())
+})
+
+@customElement('signal-value')
+export class SignalValue extends LitElement {
+  constructor() {
+    super()
+    effect(() => {
+      this.render()
+      this.requestUpdate()
+    })
   }
-}
-
-@customElement('cross-total')
-class CrossTotal extends LitElement {
-  render() {
-    return html`
-      <div>
-        <p>the cross total is:</p>
-        <output>
-          ${view($crossTotal)}
-        </output>
-      </div>
-    `
-  }
-}
-
-
-@customElement('add-button')
-class AddButton extends LitElement {
-  @property({ type: Number })
-  amount = 1
 
   render() {
-    return html`
-      <button @click=${this.#add} part="button">
-        Add ${this.amount}
-      </button>
-    `
-  }
-
-  #add() {
-    update($value, v => v + this.amount)
-  }
-}
-
-declare global {
-  interface HTMLElementTagNameMap {
-    'view-value': ViewValue
-    'add-button': AddButton
-    'cross-total': CrossTotal
+    return html` <div>Value: ${signalValue()}</div> `
   }
 }
