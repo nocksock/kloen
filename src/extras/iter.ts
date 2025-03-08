@@ -1,8 +1,8 @@
-import { derive, Observable } from "../kloen"
+import { computed, Signal } from '../core'
 
-export function filter<T>(self: Observable<T[]>, predicate: (value: T) => boolean): Observable<T[]> {
-  return derive(self, newValue => 
-    newValue.filter(predicate)
-  )
+export function filter<T>(
+  $: Signal<T[]>,
+  predicate: (value: T) => boolean
+): Signal<T[]> {
+  return computed<T>(() => $().filter(predicate))
 }
-

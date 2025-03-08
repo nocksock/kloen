@@ -9,7 +9,6 @@ export default defineConfig({
       entry: {
         'kloen': resolve(__dirname, 'src/index.ts'),
         'kloen/extras': resolve(__dirname, 'src/extras.ts'),
-        'kloen/lit': resolve(__dirname, 'src/lit/index.ts')
       },
       formats: ['es'],
       fileName: (format, entryName) => `${entryName}.js`
