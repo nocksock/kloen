@@ -5,7 +5,7 @@
 
 ## Usage / Quick Start
 
-Kloen is using [alien-signals]'s `createReactiveSystem` under the hood. The
+Kloen is using [alien-signals]'s reactivity system under the hood. The
 surface API is *mostly* the same as in the original, with some differences
 in order to be able to provide some utility functions and enable a few usage
 patterns.
@@ -43,34 +43,53 @@ $a = signal.for('counter-a', 0)
 $b = signal.for('counter-b', 0)
 
 $a === signal.for('counter-a') // true
+
+// setup function that is only run when the reference did not yet exist.
+const repo = signal.for('db', () => new PGlite({ /* ... */ }))
 ```
 
-## Usage in Web-Components
 
-```js
-import { render, html } from "https://esm.sh/lit-html"
-import { signal, update } from "https://esm.sh/kloen"
+## Why?
 
-const $counter = signal(0)
+This is mostly for me to exercise API design and study signals and understand their various implementations better. 
+I use this library extensively in my solo-side-projects and all features are written using TDD.
+Initially it I implemented my own reactivity system, which worked but didn't prioritise efficiency.
+*Now* it's using [alien-signals]'; so it's *very* efficient and fast.
 
-setInterval(() => {
-    update($counter, v => v + 1)
-}, 500)
+**However** I am maintaining this in bursts, rather than steadily - so I don't advice using this for anything other than experiments at the moment.
+It'll likely take a while if you happend to file an issue until I find time to get to it.
 
-customElements.define('counter-value', class HTMLElement {
-    #view = () => html`
-        <p>The value is ${$counter()}</p>
-    `;
+## Contributions
 
-    constructor() {
-        super();
-        effect(this.render.bind(this))
-    }
+Given this is a study exercise for me, keep in mind that I might reject contributions when I'd rather implement something on my own.
+So if you happen to use this, and encounter an issue or have a feature request, let me know; especially before putting in any work.
 
-    render() {
-        render(this.#view, this)
-    }
-})
-```
+## ROADMAP
+
+Incomplete list of things I intend to built at some point before giving it the `1.0` stamp
+
+### core functions
+- [x] provide core primitives: `signal`, `computed`, `effect`
+- [x] create signals with references, similar to `Symbol.for`
+- [ ] provide `context()` function that scope signal references
+- [ ] create benchmark suite
+- [ ] provide `scope()` for tracking effects
+- [ ] reconsider signals with a setter function similar to jotai
+
+### util functions
+- [x] provide base util functions: `update`, `mutate`
+- [x] provide `filter` util to create computed values from arrays using predicates
+- [-] provide helper functions for promises
+- [ ] provide `split` util to create signals from an array
+- [ ] provide `lense` util to create a writable signal for a property path
+- [ ] provide `proxy` util to proxy objects
+
+### integrations
+
+- [-] provide wrapper for pglite live queries
+- ~~[ ] provide helper for use in web-components~~ -> `cce` (working title)
+- [ ] provide hook for react
+- [ ] provide directive for lit
+
 
 [alien-signals]: https://github.com/stackblitz/alien-signals
