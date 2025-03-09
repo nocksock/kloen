@@ -1,3 +1,4 @@
+// @ts-nocheck - old version
 import { batch, Callback, derive, effect, mutate, Observable, signal } from "../kloen"
 import { prop } from "./select"
 

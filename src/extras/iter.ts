@@ -1,3 +1,4 @@
+// @ts-nocheck - wip
 import { computed, Signal } from '../core'
 
 export function filter<T>(
