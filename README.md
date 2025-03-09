@@ -5,11 +5,10 @@
 
 ## Usage / Quick Start
 
-Kloen is using [alien-signals]'s reactivity system under the hood. The
-surface API is *mostly* the same as in the original, with some differences
-in order to be able to provide some utility functions and enable a few usage
-patterns.
+Kloen is a signals library.
 
+It uses [alien-signals]'s reactivity system under the hood and surface API is *mostly* the same.
+However, some differences exist in order to be able to provide some utility functions and enable a few neat usage patterns.
 
 ```js
 import { signal, update, computed, mutate } from "https://esm.sh/kloen"
@@ -58,17 +57,11 @@ const repo = signal.for('db', () => new PGlite({ /* ... */ }))
 ```
 
 
-## Why?
+## Goals / Why?
 
 This is mostly to study signals and understand their various implementations better as well as an exercise in API design.
 
-However I personally use this when prototyping, in my solo-side-projects and all features are written using TDD and the core primitives are *somewhat* stable.
-Initially I event implemented my own reactivity system, but I didn't prioritise efficiency/performance.
-So when that had served its purpose, I replaced it with [alien-signals]'s reactivity system.
-*Now* it's using [alien-signals]'; so it's *very* efficient and fast.
-
-**However** I am maintaining this in bursts, rather than steadily - so I don't advice using this for anything other than experiments at the moment.
-Also it will likely take a while if you happend to file an issue until I find time to get to it.
+[read more](./dev-docs/why.md)
 
 ## Contributions
 
@@ -82,10 +75,9 @@ Incomplete list of things I intend to built at some point before giving it the `
 ### core functions
 - [x] provide core primitives: `signal`, `computed`, `effect`
 - [x] create signals with references, similar to `Symbol.for`
-- [ ] provide `context()` function that scope signal references
 - [ ] create benchmark suite
+- [ ] provide `context()` function that scope signal references
 - [ ] provide `scope()` for tracking effects
-- [ ] reconsider signals with a setter function similar to jotai
 
 ### util functions
 - [x] provide base util functions: `update`, `mutate`
@@ -97,10 +89,12 @@ Incomplete list of things I intend to built at some point before giving it the `
 
 ### integrations
 
-- [/] provide wrapper for pglite live queries
+- ~~[ ] provide wrapper for pglite live queries~~ -> provide util function
 - ~~[ ] provide helper for use in web-components~~ -> `cce` (working title)
 - [ ] provide hook for react
 - [ ] provide directive for lit
 
+### considerations
+- [ ] reconsider signals with a setter function similar to jotai
 
 [alien-signals]: https://github.com/stackblitz/alien-signals
