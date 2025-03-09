@@ -27,12 +27,12 @@
   "files": [
     "dist"
   ],
-  "packageManager": "pnpm@9.10.0",
+  "packageManager": "pnpm@10.6.1",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "tsc --noEmit",
-    "test": "vitest --environment jsdom",
+    "test": "vitest",
     "gh:issue": "gh issue -R nocksock/kloen",
     "release:minor": "pnpm run build && pnpm version minor && pnpm publish --no-git-checks",
     "release:patch": "pnpm run build && pnpm version patch && pnpm publish --no-git-checks",
@@ -41,16 +41,10 @@
     "gzip:check": "cat out/main.js| gzip -9 > out/main.js.gz  && ls -la out/"
   },
   "devDependencies": {
-    "@types/react": "^19.0.2",
-    "jsdom": "^25.0.1",
-    "lit": "^3.2.1",
-    "lit-html": "^3.2.1",
+    "@types/react": "^19.0.9",
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
     "vitest": "^2.1.4"
-  },
-  "peerDependencies": {
-    "react": "^19.0.0"
   },
   "dependencies": {
     "alien-signals": "^1.0.4"

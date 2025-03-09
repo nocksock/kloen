@@ -10,6 +10,20 @@ jobs:
   test-build-publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Cache tools
+        id: cache-tools
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/bin/rg
+          key: ${{ runner.os }}-tools-${{ hashFiles('**/tool-versions.txt') }}
+          restore-keys: ${{ runner.os }}-tools-
+
+      - name: Install ripgrep on Ubuntu
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -20,23 +34,43 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10.6.1
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Run tests
-        run: npm run test
+        run: pnpm run test
 
       - name: Determine version bump
         id: version
         run: |
           COMMITS=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)
-          if echo "$COMMITS" | grep -q "^feat:"; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -q "^fix:\|^refactor:"; then
-            echo "bump=patch" >> $GITHUB_OUTPUT
-          else
-            echo "bump=none" >> $GITHUB_OUTPUT
-          fi
+          type=$(echo "$COMMITS" | rg "^[\w\d]{4,12} (ci|fix|feat|docs|refactor|types):" -o -r '$1')
+          case $type in
+            ci|docs|chore)
+              echo "bump=none" >> $GITHUB_OUTPUT
+              ;;
+            fix|refactor|types)
+              echo "bump=patch" >> $GITHUB_OUTPUT
+              ;;
+            feat)
+              echo "bump=minor" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "bump=none" >> $GITHUB_OUTPUT
+              ;;
+          esac
 
       - name: Bump version
         if: steps.version.outputs.bump != 'none'
@@ -46,11 +80,11 @@ jobs:
           npm version ${{ steps.version.outputs.bump }} -m "Release %s"
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Publish to NPM
         if: steps.version.outputs.bump != 'none'
-        run: npm publish
+        run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
