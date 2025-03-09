@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearSignalRefs, computed, effect, signal } from '../src/core'
+import { clearSignalRefs, Computed, computed, effect, signal } from '../src/core'
 
 describe('Signal', () => {
   it('is a function that returns or sets its value', () => {
@@ -97,6 +97,12 @@ describe('Computed', () => {
     expect($computed()).toEqual('abcdef')
     thing('123')
     expect($computed()).toEqual('123def')
+  })
+
+  it('has a $ property that returns the underlying Computed instance', async () => {
+    const thing = signal('abc')
+    const $computed = computed(() => thing() + 'def')
+    expect($computed.$).toBeInstanceOf(Computed)
   })
 })
 

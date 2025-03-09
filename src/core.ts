@@ -99,9 +99,15 @@ class Signal<T = any> implements Dependency {
   }
 }
 
-export function computed<T>(getter: () => T): () => T {
-  const self = new Computed(getter)
-  return self.get.bind(self)
+interface ComputedSignal<T> {
+  (): T
+  $: Computed<T>
+}
+
+export function computed<T>(getter: () => T): ComputedSignal<T> {
+  const $ = new Computed(getter)
+  // @ts-expect-error
+  return Object.defineProperty(() => $.get(), '$', { get: () => $ })
 }
 
 export class Computed<T = any> implements Subscriber, Dependency {
