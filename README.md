@@ -36,32 +36,43 @@ $size() // 0
 mutate($someSet, s => s.add('item'))
 $size() // 1
 
-// Signals can be named and receive a default value if not yet existing,
-// making it easy to share signals between places where passing it down is
-// has too much friction
+```
+
+## Named Signals
+
+Signals can be named and receive a default value if not yet existing,
+making it easy to share signals between places where passing it down is
+has too much friction
+
+```js
 $a = signal.for('counter-a', 0)
-$b = signal.for('counter-b', 0)
-
 $a === signal.for('counter-a') // true
+```
 
-// setup function that is only run when the reference did not yet exist.
+### Initializer 
+
+Named signals can take a function that is only run when the reference did not yet exist.
+
+```js
 const repo = signal.for('db', () => new PGlite({ /* ... */ }))
 ```
 
 
 ## Why?
 
-This is mostly for me to exercise API design and study signals and understand their various implementations better. 
-I use this library extensively in my solo-side-projects and all features are written using TDD.
-Initially it I implemented my own reactivity system, which worked but didn't prioritise efficiency.
+This is mostly to study signals and understand their various implementations better as well as an exercise in API design.
+
+However I personally use this when prototyping, in my solo-side-projects and all features are written using TDD and the core primitives are *somewhat* stable.
+Initially I event implemented my own reactivity system, but I didn't prioritise efficiency/performance.
+So when that had served its purpose, I replaced it with [alien-signals]'s reactivity system.
 *Now* it's using [alien-signals]'; so it's *very* efficient and fast.
 
 **However** I am maintaining this in bursts, rather than steadily - so I don't advice using this for anything other than experiments at the moment.
-It'll likely take a while if you happend to file an issue until I find time to get to it.
+Also it will likely take a while if you happend to file an issue until I find time to get to it.
 
 ## Contributions
 
-Given this is a study exercise for me, keep in mind that I might reject contributions when I'd rather implement something on my own.
+Given this is a study and exercise for me, I'll likely reject contributions involving meaningful changes/features.
 So if you happen to use this, and encounter an issue or have a feature request, let me know; especially before putting in any work.
 
 ## ROADMAP
@@ -79,14 +90,14 @@ Incomplete list of things I intend to built at some point before giving it the `
 ### util functions
 - [x] provide base util functions: `update`, `mutate`
 - [x] provide `filter` util to create computed values from arrays using predicates
-- [-] provide helper functions for promises
+- [/] provide helper functions for promises
 - [ ] provide `split` util to create signals from an array
-- [ ] provide `lense` util to create a writable signal for a property path
 - [ ] provide `proxy` util to proxy objects
+- [ ] provide `lense` util to create a writable signal for a property path
 
 ### integrations
 
-- [-] provide wrapper for pglite live queries
+- [/] provide wrapper for pglite live queries
 - ~~[ ] provide helper for use in web-components~~ -> `cce` (working title)
 - [ ] provide hook for react
 - [ ] provide directive for lit
