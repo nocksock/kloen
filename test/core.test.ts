@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearSignalRefs, Computed, computed, effect, signal } from '../src/core'
+import {
+  clearSignalRefs,
+  Computed,
+  computed,
+  effect,
+  signal,
+} from '../src/core'
 
 describe('Signal', () => {
   it('is a function that returns or sets its value', () => {
@@ -87,7 +93,6 @@ describe('Signal References', () => {
       expect(thing()).toBe(10)
     })
   })
-
 })
 
 describe('Computed', () => {
@@ -132,5 +137,17 @@ describe('Effect', () => {
     thing('123')
     thing('888')
     expect(fn).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('async', () => {
+  it('takes a promise and updates the value when resolved', async () => {
+    const { promise, resolve, reject } = Promise.withResolvers()
+    const defaultValue = Symbol()
+    const $promise = signal.async(promise, defaultValue)
+    expect($promise()).toBe(defaultValue)
+    resolve(123)
+    await promise
+    expect($promise()).toBe(123)
   })
 })

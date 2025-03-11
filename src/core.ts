@@ -241,3 +241,11 @@ signal.clear = (key: SignalRef) => SIGNAL_REFS.delete(key)
  * Clears all registered signal references created by `signal.for`.
  */
 export const clearSignalRefs = () => SIGNAL_REFS.clear()
+
+
+signal.async = <T>(promise: Promise<T>, defaultValue: T) => {
+  const value = signal(defaultValue)
+  const handle = computed(() => value())
+  promise.then(value)
+  return handle
+}

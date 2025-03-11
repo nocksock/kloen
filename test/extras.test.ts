@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Computed, computed, signal } from '../src/core'
-import { filter, mutate, pipe, signalPromise, update } from '../src/extras'
+import { mutate, update } from '../src/extras'
 
 describe('update', () => {
   it('update value using a function', async () => {
