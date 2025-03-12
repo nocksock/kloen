@@ -120,6 +120,7 @@ export class Computed<T = any> implements Subscriber, Dependency {
   // Subscriber fields
   deps: Link | undefined = undefined
   depsTail: Link | undefined = undefined
+  // @ts-ignore
   flags: SubscriberFlags = SubscriberFlags.Computed | SubscriberFlags.Dirty
 
   getter: () => T
@@ -130,6 +131,7 @@ export class Computed<T = any> implements Subscriber, Dependency {
 
   get(): T {
     const flags = this.flags
+    // @ts-ignore
     if (flags & (SubscriberFlags.PendingComputed | SubscriberFlags.Dirty)) {
       processComputedUpdate(this, flags)
     }
@@ -162,6 +164,7 @@ export class Effect<T = any> implements Subscriber {
   // Subscriber fields
   deps: Link | undefined = undefined
   depsTail: Link | undefined = undefined
+  // @ts-ignore
   flags: SubscriberFlags = SubscriberFlags.Effect
   fn: () => T
 
@@ -172,7 +175,9 @@ export class Effect<T = any> implements Subscriber {
   notify(): void {
     const flags = this.flags
     if (
+      // @ts-ignore
       flags & SubscriberFlags.Dirty ||
+      // @ts-ignore
       (flags & SubscriberFlags.PendingComputed && updateDirtyFlag(this, flags))
     ) {
       this.run()

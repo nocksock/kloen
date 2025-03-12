@@ -3,34 +3,21 @@
   "description": "A small, independent signals implementation",
   "version": "0.12.0",
   "type": "module",
-  "types": "./dist/types.d.ts",
-  "module": "./dist/kloen.js",
   "main": "./dist/kloen.js",
-  "exports": {
-    ".": {
-      "types": "./dist/types.d.ts",
-      "default": "./dist/kloen.js"
-    },
-    "./lit": {
-      "types": "./dist/types.d.ts",
-      "default": "./dist/kloen/lit.js"
-    },
-    "./react": {
-      "types": "./dist/types.d.ts",
-      "default": "./dist/kloen/react.js"
-    },
-    "./extras": {
-      "types": "./dist/types.d.ts",
-      "default": "./dist/kloen/extras.js"
-    }
-  },
   "files": [
     "dist"
   ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./dist/kloen.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "packageManager": "pnpm@10.6.1",
   "scripts": {
     "dev": "vite",
-    "build": "lint ; vite build ; tsc",
+    "build": "pnpm run lint ; vite build ; tsc",
     "lint": "tsc --noEmit",
     "test": "vitest",
     "gh:issue": "gh issue -R nocksock/kloen",

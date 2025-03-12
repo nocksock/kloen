@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "ESNext",
-    "emitDeclarationOnly": true,
-    "declaration": true,
-    "outFile": "dist/types.d.ts",
-    "esModuleInterop": true,
     "moduleResolution": "node",
-    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
-    "jsx": "react-jsx",
-    "skipLibCheck": true
+    "target": "esnext",
+    "declaration": true
   },
   "include": ["src/**/*"],
   "external": ["react", "react-dom"]
