@@ -7,8 +7,8 @@
 
 Kloen is a signals library.
 
-It uses [alien-signals]'s reactivity system under the hood and surface API is *mostly* the same.
-However, some differences exist in order to be able to provide some utility functions and enable a few neat usage patterns.
+It uses [alien-signals]'s reactivity system under the hood and its surface API is *mostly* the same.
+Some differences exist in order to be able to provide some utility functions and make some usage patterns possible.
 
 ```js
 import { signal, update, computed, mutate } from "https://esm.sh/kloen"
@@ -20,6 +20,7 @@ $counter(4) // setter
 
 // update signals using pure transform functions using the `update` utility
 const add10 = v => v + 10
+
 update($counter, add10)
 
 $counter() // 14
@@ -55,7 +56,6 @@ Named signals can take a function that is only run when the reference did not ye
 ```js
 const repo = signal.for('db', () => new PGlite({ /* ... */ }))
 ```
-
 
 ## Goals / Why?
 
