@@ -1,7 +1,7 @@
 {
   "name": "kloen",
   "description": "A small, independent signals implementation",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "type": "module",
   "main": "./dist/kloen.js",
   "files": [
@@ -20,17 +20,14 @@
     "build": "pnpm run lint ; vite build ; tsc",
     "lint": "tsc --noEmit",
     "test": "vitest",
-
     "ci": "pnpm run ci:test && pnpm run ci:lint && pnpm run ci:build",
     "ci:test": "vitest --run",
     "ci:lint": "tsc --noEmit",
     "ci:build": "pnpm run build",
-
     "gh:issue": "gh issue -R nocksock/kloen",
     "release:minor": "pnpm run ci && pnpm version minor && pnpm publish --no-git-checks",
     "release:patch": "pnpm run ci && pnpm version patch && pnpm publish --no-git-checks",
     "release:canary": "pnpm run ci && pnpm version prerelease --preid=canary && pnpm publish --tag canary --no-git-checks",
-
     "gzip:watch": "fd | entr zsh -c pnpm run gzip:check",
     "gzip:check": "cat out/main.js| gzip -9 > out/main.js.gz  && ls -la out/"
   },
