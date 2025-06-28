@@ -3,7 +3,7 @@ import { identity } from './identity'
 
 export const codec = <Internal, Public>(
   onWrite: null | ((newValue: Public, oldValue?: Internal) => Internal),
-  onRead?: null | ((currentValue: Internal) => Public),
+  onRead?: null | ((currentValue: Internal) => Public)
 ) => {
   const readFn = onRead || identity
   const writeFn = onWrite || identity
@@ -18,3 +18,4 @@ export const codec = <Internal, Public>(
     return api
   }
 }
+

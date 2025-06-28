@@ -80,12 +80,13 @@ Incomplete list of things I intend to built at some point before giving it the `
 - [ ] provide `scope()` for tracking effects
 
 ### util functions
-- [x] provide base util functions: `update`, `mutate`
-- [x] provide `filter` util to create computed values from arrays using predicates
-- [/] provide helper functions for promises
-- [ ] provide `split` util to create signals from an array
-- [ ] provide `proxy` util to proxy objects
-- [ ] provide `lense` util to create a writable signal for a property path
+- [x] base write functions: `update`, `mutate`
+- [x] `sync` to create 
+- [x] `codec` for encoding/decoding values on read and/or write
+- [x] `filter` to create computed values from arrays using predicates
+- [ ] `reducer` to create a signal with dispatcher
+- [ ] `query/task` for async values
+- [ ] `split` to create signals from an array
 
 ### integrations
 
