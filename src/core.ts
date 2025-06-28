@@ -56,7 +56,6 @@ export function signal<T>(oldValue?: T): WriteableSignal<T | undefined> {
   return api
 }
 
-// TODO: reconsider class based approach over function based
 class Signal<T = any> implements Dependency {
   // Dependency fields
   subs: Link | undefined = undefined
@@ -99,7 +98,7 @@ class Signal<T = any> implements Dependency {
   }
 }
 
-interface ComputedSignal<T> {
+export interface ComputedSignal<T> {
   (): T
   $: Computed<T>
 }
