@@ -3,6 +3,9 @@ import { mutate } from "../extras"
 
 /**
  * A reactive stack datastructure.
+ *
+ * TODO: consider auto pop on read? Is that useful? Or is it better to create an
+ *   `autostack` that does this?
  */
 export const stack = <T>(initialValue: T) => {
   const self = signal<T[]>([initialValue]),

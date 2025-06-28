@@ -84,18 +84,23 @@ Incomplete list of things I intend to built at some point before giving it the `
 - [x] `sync` to create 
 - [x] `codec` for encoding/decoding values on read and/or write
 - [x] `filter` to create computed values from arrays using predicates
-- [ ] `reducer` to create a signal with dispatcher
+- [x] `reducer` to create a signal with dispatcher
+- [ ] `atom` to create a signal with setter and getter that can read signals (maybe merge with codec)
 - [ ] `query/task` for async values
-- [ ] `split` to create signals from an array
+- [ ] `split` to turn a list of values into a reactive list of signals
+
+## data structures
+- [ ] WIP `stack` LIFO: `.pop`, `.prev` (peek), `.size`
+- [ ] `queue` FIFO
+- [ ] `set`
+- [ ] `record` (map)
+- [ ] `list`
 
 ### integrations
 
-- ~~[ ] provide wrapper for pglite live queries~~ -> provide util function
+- ~~[ ] provide wrapper for pglite live queries~~ -> [x] provide util function
 - ~~[ ] provide helper for use in web-components~~ -> `cce` (working title)
 - [ ] provide hook for react
 - [ ] provide directive for lit
-
-### considerations
-- [ ] reconsider signals with a setter function similar to jotai
 
 [alien-signals]: https://github.com/stackblitz/alien-signals
