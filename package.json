@@ -20,8 +20,10 @@
     "build": "pnpm run lint ; vite build ; tsc",
     "lint": "tsc --noEmit",
     "test": "vitest",
-    "ci": "pnpm run ci:test && pnpm run ci:lint && pnpm run ci:build",
+    "test:browser": "web-test-runner test/browser/**/*.test.{js,html,ts} --watch",
+    "ci": "pnpm run ci:test && pnpm run ci:browsertest && pnpm run ci:lint && pnpm run ci:build",
     "ci:test": "vitest --run",
+    "ci:browsertest": "web-test-runner test/browser/**/*.test.{js,html,ts}",
     "ci:lint": "tsc --noEmit",
     "ci:build": "pnpm run build",
     "gh:issue": "gh issue -R nocksock/kloen",
@@ -32,7 +34,13 @@
     "gzip:check": "cat out/main.js| gzip -9 > out/main.js.gz  && ls -la out/"
   },
   "devDependencies": {
+    "@open-wc/testing": "^4.0.0",
     "@types/react": "^19.0.9",
+    "@types/sinon": "^17.0.4",
+    "@web/dev-server-esbuild": "^1.0.4",
+    "@web/test-runner": "^0.20.0",
+    "@web/test-runner-mocha": "^0.9.0",
+    "sinon": "^19.0.2",
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
     "vitest": "^2.1.4"

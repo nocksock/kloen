@@ -1,24 +1,26 @@
 import { defineConfig } from 'vite'
+import { configDefaults } from 'vitest/config'
 import { resolve } from 'path'
-import pkg from "./package.json"
 
 export default defineConfig({
   build: {
     minify: false,
     lib: {
       entry: {
-        'kloen': resolve(__dirname, 'src/index.ts'),
+        kloen: resolve(__dirname, 'src/index.ts'),
         'kloen/extras': resolve(__dirname, 'src/extras.ts'),
       },
       formats: ['es'],
-      fileName: (format, entryName) => `${entryName}.js`
+      fileName: (format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
-      external: Object.keys(pkg.peerDependencies || {}),
       output: {
         preserveModules: false,
-        entryFileNames: '[name].js'
-      }
-    }
-  }
+        entryFileNames: '[name].js',
+      },
+    },
+  },
+  test: {
+    exclude: [...configDefaults.exclude, './test/browser/*'],
+  },
 })
