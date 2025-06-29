@@ -85,7 +85,7 @@ Incomplete list of things I intend to built at some point before giving it the `
 - [x] `codec` for encoding/decoding values on read and/or write
 - [x] `filter` to create computed values from arrays using predicates
 - [x] `reducer` to create a signal with dispatcher
-- [ ] `element` to query a single dom element and be able to use that element in a reactive way
+- 🚧  `element` to query a single dom element and be able to use that element in a reactive way
 - [ ] `atom` to create a signal with setter and getter that can read signals (maybe merge with codec)
 - [ ] `task` for async values
 - [ ] `split` to turn a list of values into a reactive list of signals

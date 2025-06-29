@@ -6,6 +6,9 @@ const observer = new MutationObserver((mutationList, observer) => {
   }
 })
 
+/**
+ * @experimental work in progress
+ */
 export const element = (selector: string) => {
   const el = document.querySelector(selector)
   if (!el) {
