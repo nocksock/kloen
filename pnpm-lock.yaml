@@ -15,6 +15,9 @@ importers:
       '@open-wc/testing':
         specifier: ^4.0.0
         version: 4.0.0
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
       '@types/react':
         specifier: ^19.0.9
         version: 19.0.9
@@ -588,6 +591,9 @@ packages:
 
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
+
+  '@types/mocha@10.0.10':
+    resolution: {integrity: sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==}
 
   '@types/node@24.0.7':
     resolution: {integrity: sha512-YIEUUr4yf8q8oQoXPpSlnvKNVKDQlPMWrmOcgzoduo7kvA2UF0/BwJ/eMKFTiTtkNL17I0M6Xe2tvwFU7be6iw==}
@@ -2526,6 +2532,8 @@ snapshots:
       '@types/node': 24.0.7
 
   '@types/mime@1.3.5': {}
+
+  '@types/mocha@10.0.10': {}
 
   '@types/node@24.0.7':
     dependencies:

@@ -9,10 +9,12 @@ export default defineConfig({
       entry: {
         kloen: resolve(__dirname, 'src/index.ts'),
         'kloen/extras': resolve(__dirname, 'src/extras.ts'),
+        'kloen/experimental': resolve(__dirname, 'src/extras/experimental.ts'),
       },
       formats: ['es'],
       fileName: (format, entryName) => `${entryName}.js`,
     },
+    
     rollupOptions: {
       output: {
         preserveModules: false,

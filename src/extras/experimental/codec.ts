@@ -1,5 +1,5 @@
-import { signal } from '../core'
-import { identity } from './identity'
+import { signal } from '../../core'
+import { identity } from '../identity'
 
 /**
 * @experimental work in progress

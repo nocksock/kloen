@@ -1,5 +1,4 @@
 export * from './extras/mutate'
 export * from './extras/update'
 export * from './extras/stack'
-export * from './extras/codec'
 export * from './extras/reducer'

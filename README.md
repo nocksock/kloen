@@ -76,22 +76,22 @@ Incomplete list of things I intend to built at some point before giving it the `
 - [x] provide core primitives: `signal`, `computed`, `effect`
 - [x] create signals with references, similar to `Symbol.for`
 - [ ] create benchmark suite
-- [ ] provide `context()` function that scope signal references
-- [ ] provide `scope()` for tracking effects
+- [ ] `context`/`scope` to scope signal references
 
 ### util functions
 - [x] base write functions: `update`, `mutate`
 - [x] `sync` to create 
 - [x] `codec` for encoding/decoding values on read and/or write
-- [x] `filter` to create computed values from arrays using predicates
 - [x] `reducer` to create a signal with dispatcher
-- 🚧  `element` to query a single dom element and be able to use that element in a reactive way
-- [ ] `atom` to create a signal with setter and getter that can read signals (maybe merge with codec)
+- 🧪  wip `element` to query a single dom element and be able to use that element in a reactive way
+- [ ] `(unknown)` a signal with setter and getter that reacts to other signals too
 - [ ] `task` for async values
+- [ ] `generator`/`stream` for async changing values
+- [ ] `filter` to create computed values from arrays using predicates
 - [ ] `split` to turn a list of values into a reactive list of signals
 
 ## data structures
-- [ ] WIP `stack` LIFO: `.pop`, `.prev` (peek), `.size`
+- 🧪 WIP `stack` LIFO: `.pop`, `.prev` (peek), `.size`
 - [ ] `queue` FIFO
 - [ ] `set`
 - [ ] `record` (map)

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { codec, reducer } from '../src/extras'
+import { reducer } from '../src/extras'
+import { codec } from '../src/extras/experimental'
 import { verifySignalBehaviour } from './test-helpers'
-import { identity } from '../src/extras/identity'
 
 describe('codec', () => {
   it('creates a signal factory', verifySignalBehaviour(codec(null)))

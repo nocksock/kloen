@@ -3,7 +3,7 @@ import { element, waitFor } from '../../src/extras/experimental/element'
 import sinon from 'sinon'
 import { computed, effect } from '../../src/core'
 
-describe('eleemnt', () => {
+describe('waitFor', () => {
   it('will have an element when it appears', done => {
     fixture(html` <div></div> `)
       .then(async el => {
@@ -49,7 +49,6 @@ describe('eleemnt', () => {
 
     await nextFrame()
 
-    console.log('foo', count())
     expect(count()).to.eq(1)
   })
 })

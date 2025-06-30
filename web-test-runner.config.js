@@ -1,7 +1,10 @@
 import { esbuildPlugin } from '@web/dev-server-esbuild'
 export default {
-  concurrency: 3,
+  // concurrency: 1,
   nodeResolve: true,
   plugins: [esbuildPlugin({ ts: true, target: 'auto' })],
-  filterBrowserLogs: log => !log.args?.at(0)?.startsWith('Lit is in dev mode'),
+  filterBrowserLogs: log => {
+    const first = !log.args?.at(0)
+    return typeof first === 'string' && first?.startsWith('Lit is in dev mode')
+  },
 }

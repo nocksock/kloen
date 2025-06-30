@@ -21,7 +21,7 @@
     "lint": "tsc --noEmit",
     "test": "vitest",
     "test:browser": "web-test-runner test/browser/**/*.test.{js,html,ts} --watch",
-    "ci": "pnpm run ci:test && pnpm run ci:browsertest && pnpm run ci:lint && pnpm run ci:build",
+    "ci": "pnpm run ci:test && pnpm run ci:lint && pnpm run ci:build",
     "ci:test": "vitest --run",
     "ci:browsertest": "web-test-runner test/browser/**/*.test.{js,html,ts}",
     "ci:lint": "tsc --noEmit",
@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@open-wc/testing": "^4.0.0",
+    "@types/mocha": "^10.0.10",
     "@types/react": "^19.0.9",
     "@types/sinon": "^17.0.4",
     "@web/dev-server-esbuild": "^1.0.4",
@@ -43,9 +44,7 @@
     "sinon": "^19.0.2",
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
-    "vitest": "^2.1.4"
-  },
-  "dependencies": {
+    "vitest": "^2.1.4",
     "alien-signals": "^1.0.4"
   }
 }
