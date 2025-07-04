@@ -26,6 +26,9 @@ importers:
       typedoc:
         specifier: ^0.28.7
         version: 0.28.7(typescript@5.8.3)
+      typedoc-github-theme:
+        specifier: ^0.3.0
+        version: 0.3.0(typedoc@0.28.7(typescript@5.8.3))
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -1147,6 +1150,12 @@ packages:
   type-fest@4.41.0:
     resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
     engines: {node: '>=16'}
+
+  typedoc-github-theme@0.3.0:
+    resolution: {integrity: sha512-7HzKJt8ZZSTNYczK8BcZZbpr7GsyTZgsoLFKtO4NYxXOb7mSr92yTj7hl16ind0WsOzxPo2DZGjkUH2VoPrdxg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      typedoc: ~0.28.0
 
   typedoc@0.28.7:
     resolution: {integrity: sha512-lpz0Oxl6aidFkmS90VQDQjk/Qf2iw0IUvFqirdONBdj7jPSN9mGXhy66BcGNDxx5ZMyKKiBVAREvPEzT6Uxipw==}
@@ -2448,6 +2457,10 @@ snapshots:
 
   type-fest@4.41.0:
     optional: true
+
+  typedoc-github-theme@0.3.0(typedoc@0.28.7(typescript@5.8.3)):
+    dependencies:
+      typedoc: 0.28.7(typescript@5.8.3)
 
   typedoc@0.28.7(typescript@5.8.3):
     dependencies:

@@ -10,8 +10,8 @@
     "test": "vitest",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
     "test:browser": "vitest --browser chrome",
-    "docs": "typedoc src/index.ts --excludeInternal",
-    "dev:docs": "typedoc src/index.ts --excludeInternal --watch",
+    "docs": "typedoc src/index.ts --excludeInternal --plugin typedoc-github-theme --out docs",
+    "dev:docs": "typedoc src/index.ts --excludeInternal --plugin typedoc-github-theme --watch",
     "dev:docs:internal": "typedoc src/index.ts --watch",
     "ci": "pnpm run build && pnpm run ci:test",
     "ci:test": "vitest --run",
@@ -30,6 +30,7 @@
     "alien-signals": "^1.0.13",
     "playwright": "^1.53.2",
     "typedoc": "^0.28.7",
+    "typedoc-github-theme": "^0.3.0",
     "typescript": "^5.8.3",
     "vite": "^5.4.19",
     "vitest": "^3.2.4"

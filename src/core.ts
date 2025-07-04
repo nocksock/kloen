@@ -34,16 +34,26 @@ export function endBatch(): void {
   }
 }
 
-export interface WriteableSignal<T> extends ReadableSignal<T> {
-  (): T
-  (value: T): void
-  $: Signal<T>
+export interface WriteableSignal<Value> extends ReadableSignal<Value> {
+  (): Value
+  (value: Value): void
+  /**
+   * This is a reference to the signal object. Used internally by functions.
+   * Never use this in application code!
+   */
+  $: Signal<Value>
 }
 
 export interface ReadableSignal<T> {
   (): T
 }
 
+/**
+ * Creates a signal, which is a reactive value that can be read and written to.
+ * Read it's value by calling it as a function, and write its value by passing
+ * a new value to it - or use `update` or `mutate` to modify its internal value
+ * via transformer functions.
+ */
 export function signal<T>(): WriteableSignal<T | undefined>
 export function signal<T>(oldValue: T): WriteableSignal<T>
 export function signal<T>(oldValue?: T): WriteableSignal<T | undefined> {
@@ -106,6 +116,18 @@ export interface ComputedSignal<T> {
   $: Computed<T>
 }
 
+/**
+ * Create a computed signal that automatically updates when its dependencies change.
+ * `computed` is sometimes called `derive` in other libraries.
+ *
+ * Dependencies are automatically tracked.
+ *
+ * ```ts
+ *  const value = signal(0)
+ *  const double = computed(() => value() * 2)
+ * ```
+ *
+ */
 export function computed<T>(getter: () => T): ComputedSignal<T> {
   const $ = new Computed(getter)
   // @ts-expect-error
