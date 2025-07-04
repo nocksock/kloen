@@ -1,4 +1,4 @@
-import { computed, effect, signal } from '../../core'
+import { computed, effect, signal } from '../../core.js'
 
 export const waitFor = (selector: string) => {
   const self = signal<Element | null>(null)

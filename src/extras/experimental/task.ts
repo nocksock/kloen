@@ -1,4 +1,4 @@
-import { signal } from "../../core"
+import { signal } from "../../core.js"
 
 // async signal
 export const task = (fn: () => Promise<any>) => {

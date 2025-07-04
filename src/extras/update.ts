@@ -1,4 +1,4 @@
-import { WriteableSignal } from "../core";
+import type { WriteableSignal } from "../core.js";
 
 
 /**

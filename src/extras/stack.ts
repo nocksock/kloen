@@ -1,5 +1,5 @@
-import { computed, signal } from "../core"
-import { mutate } from "../extras"
+import { computed, signal } from "../core.js"
+import { mutate } from "../extras.js"
 
 /**
  * A reactive stack datastructure.

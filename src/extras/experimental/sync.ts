@@ -1,5 +1,5 @@
-import { signal, WriteableSignal } from '../../core'
-import { identity } from '../identity'
+import { signal, type WriteableSignal } from '../../core.js'
+import { identity } from '../identity.js'
 
 export const sync = <T, K = any extends infer Key ? Key : never>(
   initialise: (key: K, self: WriteableSignal<T | undefined>) => T | undefined,

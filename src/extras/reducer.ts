@@ -1,4 +1,4 @@
-import { signal } from '../core'
+import { signal } from '../core.js'
 
 export const reducer = <Action, State>(
   reducer: (action: Action, state: State) => State
