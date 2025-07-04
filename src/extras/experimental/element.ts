@@ -1,19 +1,24 @@
-import { computed, effect, signal } from '../../core.js'
+import { computed, effect, signal, type WriteableSignal } from '../../core.js'
 
-export const waitFor = (selector: string) => {
+export const waitFor = (
+  selector: string,
+  root: HTMLElement = document.body
+) => {
   const self = signal<Element | null>(null)
   const el = document.querySelector(selector)
-  self(el)
-  if (el) return self
+  if (el) {
+    self(el)
+    return self
+  }
 
   const observer = new MutationObserver(() => {
-    const element = document.querySelector(selector)
+    const element = root.querySelector(selector)
     if (!element) return
     self(element)
     observer.disconnect()
   })
 
-  observer.observe(document.body, { childList: true, subtree: true })
+  observer.observe(root, { childList: true, subtree: true })
 
   return self
 }
@@ -21,25 +26,22 @@ export const waitFor = (selector: string) => {
 /**
  * @experimental work in progress
  */
-export const element = (selector: string) => {
-  const el = waitFor(selector)
-  const observer = new MutationObserver(mutationList => {
-    for (const mutation of mutationList) {
-      if (mutation.type === 'childList') {
-      el.$.emit()
-      } else if (mutation.type === 'attributes') {
-      el.$.emit()
-      }
-    }
-  })
+export const element = (
+  selector: string,
+  root: HTMLElement = document.body
+) => {
+  const self = waitFor(selector, root)
+  const observer = new MutationObserver(() => self.$.emit())
 
   effect(() => {
-    if (!el()) return;
-    observer.observe(el()!, {
+    if (!self()) return
+
+    observer.observe(root, {
+      childList: true,
       attributes: true,
-      childList: true
+      subtree: true,
     })
   })
 
-  return computed(el)
+  return self
 }
