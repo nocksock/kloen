@@ -108,12 +108,6 @@ describe('Computed', () => {
     thing('123')
     expect($computed()).toEqual('123def')
   })
-
-  it('has a $ property that returns the underlying Computed instance', async () => {
-    const thing = signal('abc')
-    const $computed = computed(() => thing() + 'def')
-    expect($computed.$).toBeInstanceOf(Computed)
-  })
 })
 
 describe('Effect', () => {

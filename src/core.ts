@@ -1,5 +1,5 @@
 import type { Dependency, Link, Subscriber } from 'alien-signals'
-import { createReactiveSystem, type SubscriberFlags } from 'alien-signals'
+import { createReactiveSystem, SubscriberFlags } from 'alien-signals'
 
 const {
   link,
@@ -162,9 +162,6 @@ class Computed<T = any> implements Subscriber, Dependency {
   }
 }
 
-/**
- * @internal
- */
 export class Effect<T = any> implements Subscriber {
   // Subscriber fields
   deps: Link | undefined = undefined
