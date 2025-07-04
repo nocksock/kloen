@@ -1,5 +1,5 @@
 import type { Dependency, Link, Subscriber } from 'alien-signals'
-import { createReactiveSystem, SubscriberFlags } from 'alien-signals'
+import { createReactiveSystem, type SubscriberFlags } from 'alien-signals'
 
 const {
   link,
@@ -22,10 +22,12 @@ const {
 let activeSub: Subscriber | undefined = undefined
 let batchDepth = 0
 
+/** @internal */
 export function startBatch(): void {
   ++batchDepth
 }
 
+/** @internal */
 export function endBatch(): void {
   if (!--batchDepth) {
     processEffectNotifications()
@@ -56,6 +58,7 @@ export function signal<T>(oldValue?: T): WriteableSignal<T | undefined> {
   return api
 }
 
+/** @internal */
 class Signal<T = any> implements Dependency {
   // Dependency fields
   subs: Link | undefined = undefined
@@ -109,7 +112,7 @@ export function computed<T>(getter: () => T): ComputedSignal<T> {
   return Object.defineProperty(() => $.get(), '$', { get: () => $ })
 }
 
-export class Computed<T = any> implements Subscriber, Dependency {
+class Computed<T = any> implements Subscriber, Dependency {
   currentValue: T | undefined = undefined
 
   // Dependency fields
@@ -159,6 +162,9 @@ export class Computed<T = any> implements Subscriber, Dependency {
   }
 }
 
+/**
+ * @internal
+ */
 export class Effect<T = any> implements Subscriber {
   // Subscriber fields
   deps: Link | undefined = undefined
@@ -201,6 +207,20 @@ export class Effect<T = any> implements Subscriber {
   }
 }
 
+/**
+ * Creates an effect that runs the provided function immediately and whenever
+ * any of its dependencies change.
+ * Use this whenever you want to do something outside of the reactive system,
+ * eg. updating the DOM, logging, etc.
+ * ```ts
+ *  const count = signal(0)
+ *  effect(() => {
+ *    console.log(`Count is now: ${count()}`) //  logs "Count is now: 0"
+ *  })
+ *  // count(1) // logs "Count is now: 1"
+ *  // count(2) // logs "Count is now: 2"
+ * ```
+ */
 export function effect<T>(fn: () => T): () => void {
   const e = new Effect(fn)
   e.run()
@@ -243,5 +263,6 @@ signal.clear = (key: SignalRef) => SIGNAL_REFS.delete(key)
 
 /**
  * Clears all registered signal references created by `signal.for`.
+ * @internal
  */
 export const clearSignalRefs = () => SIGNAL_REFS.clear()

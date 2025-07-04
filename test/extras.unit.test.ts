@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Computed, computed, signal, effect } from '../src/core'
+import { computed, signal, effect } from '../src/core'
 import { mutate, stack, update } from '../src/extras'
 
 const isSignal = $ => {
@@ -16,15 +16,15 @@ const isSignal = $ => {
 describe('update', () => {
   it('update value using a function', async () => {
     const $items = signal('hello')
-    const $length = new Computed(() => $items().length)
+    const $length = computed(() => $items().length)
 
     update($items, n => n + ' world')
     expect($items()).toEqual('hello world')
-    expect($length.get()).toBe(11)
+    expect($length()).toBe(11)
     update($items, n => 'foo')
 
     expect($items()).toEqual('foo')
-    expect($length.get()).toBe(3)
+    expect($length()).toBe(3)
   })
 })
 

@@ -10,6 +10,9 @@
     "test": "vitest",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
     "test:browser": "vitest --browser chrome",
+    "docs": "typedoc src/index.ts --excludeInternal",
+    "dev:docs": "typedoc src/index.ts --excludeInternal --watch",
+    "dev:docs:internal": "typedoc src/index.ts --watch",
     "ci": "pnpm run build && pnpm run ci:test",
     "ci:test": "vitest --run",
     "ci:build": "pnpm run build",
@@ -26,6 +29,7 @@
     "@vitest/ui": "3.2.4",
     "alien-signals": "^1.0.13",
     "playwright": "^1.53.2",
+    "typedoc": "^0.28.7",
     "typescript": "^5.8.3",
     "vite": "^5.4.19",
     "vitest": "^3.2.4"
