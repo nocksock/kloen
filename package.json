@@ -9,11 +9,9 @@
     "build": "tsc",
     "test": "vitest",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
-    "test:browser": "web-test-runner test/browser/**/*.test.{js,html,ts} --watch",
-    "ci": "pnpm run ci:test && pnpm run ci:lint && pnpm run ci:build",
+    "test:browser": "vitest --browser chrome",
+    "ci": "pnpm run build && pnpm run ci:test",
     "ci:test": "vitest --run",
-    "ci:browsertest": "web-test-runner test/browser/**/*.test.{js,html,ts}",
-    "ci:lint": "tsc --noEmit",
     "ci:build": "pnpm run build",
     "gh:issue": "gh issue -R nocksock/kloen",
     "release:minor": "pnpm run ci && pnpm version minor && pnpm publish --no-git-checks",
@@ -24,25 +22,12 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
-    "@open-wc/testing": "^4.0.0",
-    "@types/mocha": "^10.0.10",
-    "@types/react": "^19.0.9",
-    "@types/sinon": "^17.0.4",
-    "@web/dev-server-esbuild": "^1.0.4",
-    "@web/test-runner": "^0.20.0",
-    "@web/test-runner-mocha": "^0.9.0",
-    "alien-signals": "^1.0.4",
-    "sinon": "^19.0.2",
-    "typescript": "^5.5.3",
-    "vite": "^5.3.3",
-    "vitest": "^2.1.4"
-  },
-  "pnpm": {
-    "overrides": {
-      "kloen": "link:"
-    }
-  },
-  "dependencies": {
-    "kloen": "link:"
+    "@vitest/browser": "3.2.4",
+    "@vitest/ui": "3.2.4",
+    "alien-signals": "^1.0.13",
+    "playwright": "^1.53.2",
+    "typescript": "^5.8.3",
+    "vite": "^5.4.19",
+    "vitest": "^3.2.4"
   }
 }

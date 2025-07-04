@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearSignalRefs, Computed, computed, effect, signal } from '../src/core'
+import { spyEffect } from './test-helpers'
 
 describe('Signal', () => {
   it('is a function that returns or sets its value', () => {
@@ -12,6 +13,15 @@ describe('Signal', () => {
   it('returns the value when set', () => {
     const thing = signal('abc')
     expect(thing('123')).toEqual('123')
+  })
+
+  it('can be forced to emit using internal API', async () => {
+    const thing = signal('abc')
+    const sideEffect = spyEffect(thing)
+
+    expect(sideEffect).toHaveBeenCalledTimes(1)
+    thing.$.emit()
+    expect(sideEffect).toHaveBeenCalledTimes(2)
   })
 })
 
@@ -119,6 +129,7 @@ describe('Effect', () => {
     thing('123')
     expect(fn).toHaveBeenCalledTimes(2)
   })
+
 
   it('returns a function that cancels the effect', async () => {
     const thing = signal('abc')

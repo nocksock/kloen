@@ -1,54 +1,52 @@
-import { fixture, expect, nextFrame, html } from '@open-wc/testing'
-import { element, waitFor } from '../../src/extras/experimental/element'
-import sinon from 'sinon'
-import { computed, effect } from '../../src/core'
+import { beforeEach, describe, expect, it, vi, } from 'vitest'
+import { waitFor } from '../../src/extras/experimental/element'
+import { html, nextFrame, spyEffect, withDOM } from '../test-helpers'
+import { computed } from '../../src/core'
 
 describe('waitFor', () => {
-  it('will have an element when it appears', done => {
-    fixture(html` <div></div> `)
-      .then(async el => {
-        const ul = waitFor('ul')
-        expect(ul()).to.be.null
-        const list = document.createElement('ul')
-        list.innerHTML = '<li>list item</li>'
-        el.append(list)
+  it('will have an element when it appears', () => {
+    return withDOM(html`<div></div>`, async doc => {
+      const ul = waitFor('ul', doc)
+      const list = html`
+        <ul>
+          <li>item one</li>
+          <li>item two</li>
+          <li>item three</li>
+        </ul>
+      `
+      const itemCount = computed(() => ul()?.children.length || 0)
 
-        await nextFrame()
+      expect(ul()).to.be.null
+      doc.append(list)
 
-        expect(ul()).to.not.be.null
-        expect(ul()!.children.length).to.equal(1)
-      })
-      .finally(done)
+      await nextFrame()
+
+      expect(ul()).toBe(list)
+      expect(itemCount()).toEqual(3)
+    })
   })
 
-  it('does not update on dom mutation (element()) does)', async () => {
-    const el = await fixture(html` <div></div> `)
-    const ul = waitFor('ul')
-    expect(ul()).to.be.null
-    const list = document.createElement('ul')
-    list.innerHTML = '<li>list item</li>'
-    el.append(list)
+  it('will not update on mutation (query will)', async () => {
+    return withDOM(html`<div></div>`, async doc => {
+      const ul = waitFor('ul', doc)
+      const spy = spyEffect(ul)
+      const list = html`
+        <ul>
+          <li>item one</li>
+        </ul>
+      `
 
-    await nextFrame()
+      expect(spy).toHaveBeenCalledTimes(1)
 
-    const count = computed(() => {
-      return ul()?.children.length
+      doc.append(list)
+      await nextFrame()
+
+      expect(spy).toHaveBeenCalledTimes(2)
+      expect(ul()).toBe(list)
+
+      list.append(html`<li>item two</li>`)
+
+      expect(spy).toHaveBeenCalledTimes(2)
     })
-
-    expect(count()).to.eq(1)
-
-    const addItem = () => {
-      const li = document.createElement('li')
-      li.innerText = 'list item'
-      list.append(li)
-    }
-
-    addItem()
-    addItem()
-    addItem()
-
-    await nextFrame()
-
-    expect(count()).to.eq(1)
   })
 })
