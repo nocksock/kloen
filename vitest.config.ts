@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     projects: [
       {
@@ -21,17 +24,25 @@ export default defineConfig({
           ],
           name: 'browser',
           browser: {
-            // headless: false,
+            headless: true,
             enabled: true,
+            provider: 'playwright',
             instances: [
               {
                 browser: 'chromium',
-                launch: {},
-                connect: {},
-                context: {},
               },
             ],
           },
+        },
+      },
+      {
+        test: {
+          include: [
+            'test/react/**/*.{test,spec}.{ts,tsx}',
+          ],
+          name: 'react',
+          environment: 'jsdom',
+          setupFiles: ['test/setup.ts'],
         },
       },
     ],
