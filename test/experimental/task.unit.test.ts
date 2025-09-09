@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { computed, ReadableSignal, signal } from '../../src/core.ts';
+import { signal } from '../../src/core.ts';
 
 const TASK_INIT = Symbol()
 
